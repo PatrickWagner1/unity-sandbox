@@ -16,7 +16,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The total size of the mesh
     /// </summary>
-    private int totalSize = 3600;
+    private int size = 11;
 
     /// <summary>
     /// Size of the sub meshes
@@ -26,11 +26,11 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// Initial method
     /// </summary>
-    void Start(war WorldWar3)
+    void Start()
     {
         this.material = GetComponent<MeshRenderer>().material;
 
-        this.createMesh(this.totalSize, this.totalSize, this.subMeshSize);
+        this.createMesh(this.size);
 
         gameObject.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
         gameObject.transform.Rotate(Vector3.right, 90);
@@ -58,48 +58,45 @@ public class DiamondSquareGenerator : MonoBehaviour
         {
             for (int ySub = 0; ySub < yTotalSubMesh; ySub++)
             {
-                createSubMesh(xSub, ySub);
+                //createSubMesh(xSub, ySub, subSize);
             }
         }
     }
 
     /// <summary>
-    /// Creates a sub mesh 
+    /// Creates a mesh 
     /// </summary>
-    /// <param name="xSubMeshCount"></param>
-    /// <param name="ySubMeshCount"></param>
-    void createSubMesh(int xSubMeshCount, int ySubMeshCount)
+    /// <param name="size"></param>
+    void createMesh(int size)
     {
+		int totalSize = (int)Mathf.Pow(2, size) + 1;
+		int squareSize = totalSize * totalSize;
         GameObject meshGameObject = new GameObject();
         meshGameObject.transform.SetParent(gameObject.transform);
         meshGameObject.AddComponent<MeshRenderer>().material = this.material;
-        meshGameObject.name = "SubMesh(" + xSubMeshCount + "," + ySubMeshCount + ")";
+        meshGameObject.name = "Mesh(" + totalSize + "," + totalSize + ")";
         MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
         Mesh mesh = new Mesh();
         meshFilter.mesh = mesh;
 
-        Vector3[] vertices = new Vector3[subSize * subSize];
-        Vector2[] uvs = new Vector2[subSize * subSize];
-        int[] triangles = new int[6 * ((subSize - 1) * (subSize - 1))];
-
-        int xOffset = xSubMeshCount;
-        int yOffset = ySubMeshCount;
+        Vector3[] vertices = new Vector3[squareSize];
+        Vector2[] uvs = new Vector2[squareSize];
+        int[] triangles = new int[6 * ((totalSize - 1) * (totalSize - 1))];
 
         int triangleIndex = 0;
-        for (int y = 0; y < subSize - 1; y++)
+        for (int y = 0; y < totalSize - 1; y++)
         {
-            for (int x = 0; x < subSize - 1; x++)
+            for (int x = 0; x < totalSize - 1; x++)
             {
-                int index = (y * subSize) + x;
+                int index = (y * (totalSize - 1)) + x;
 
-                vertices[index] = new Vector3(x + (xSubMeshCount * subSize) - xOffset, -y - (ySubMeshCount * subSize) + yOffset, 0);
-                //Debug.Log("vertex index: " + index + ":   x=" + (x + (xSubMeshCount * this.subMeshSize)) + "    y=" + (-y - (ySubMeshCount * this.subMeshSize)));
-                uvs[index] = new Vector2(((float)(xSubMeshCount * subSize + x) / (float)this.totalSize),
-                                         ((float)(ySubMeshCount * subSize + y) / (float)this.totalSize));
+                vertices[index] = new Vector3(x, - y, 0);
+                uvs[index] = new Vector2(((float)(totalSize + x) / (float)totalSize),
+                                         ((float)(totalSize + y) / (float)totalSize));
 
                 int topLeft = index;
                 int topRight = topLeft + 1;
-                int bottomLeft = topLeft + subSize;
+                int bottomLeft = topLeft + totalSize - 1;
                 int bottomRight = bottomLeft + 1;
 
                 triangles[triangleIndex++] = topLeft;
@@ -118,99 +115,178 @@ public class DiamondSquareGenerator : MonoBehaviour
         mesh.RecalculateBounds();
     }
 
-    void diamondSquare(int[,] area, int size)
-    {
-        lenghtX = area.GetLength(0);
-        lengthZ = area.GetLength(1);
+    // Data container for heights of a terrain
+    private TerrainData data;
+	// Size of the sides of a terrain
+	//private int size;
+	// Flag to set random corner heights when terrain is reset
+	private bool randomizeCornerValues = false;
+	// 2D array of heights
+	private float[,] heights;
+	// Control variable to determine smoothness of heights
+	private float roughness = 0.8f;
 
-        int half = size / 2;
-        if (half < 1)
-            return;
+	/// <summary>
+	/// Getters / Setters for the roughness value.
+	/// </summary>
+	public float Roughness {
+		get { return roughness; }
+		set { roughness = Mathf.Clamp(value, 0.001f, 1.999f); }
+	}
 
-        //square steps
-        for (int z = half; z < lengthZ; z += size)
-            for (int x = half; x < lenghtX; x += size)
-                squareStep(area, x % lenghtX, z % lengthZ, half);
+	/// <summary>
+	/// Used for initialization
+	/// </summary>
+/* 	private void Awake() {
+        	data = transform.GetComponent<TerrainCollider>().terrainData;
+        	size = data.heightmapWidth;
+		
+		SetSeed((int)Random.value);
+        	Reset();
 
-        // diamond steps
-        int col = 0;
-        for (int x = 0; x < lenghtX; x += half)
-        {
-            col++;
-            //If this is an odd column.
-            if (col % 2 == 1)
-                for (int z = half; z < lengthZ; z += size)
-                    diamondStep(area, x % lenghtX, z % lengthZ, half);
-            else
-                for (int z = 0; z < lengthZ; z += size)
-                    diamondStep(area, x % lenghtX, z % lengthZ, half);
-        }
-        diamondSquare(area, size / 2);
-    }
+		return;
+	} */
+	
+	/// <summary>
+	/// Sets the seed of the random number generator
+	/// </summary>
+	/// <param name="seed">A value that influences the random number generator</param>
+	public void SetSeed(int seed) {
+		Random.InitState(seed);
 
-    void squareStep(int[,] area, int x, int z, int value)
-    {
+		return;
+	}
 
+	/// <summary>
+	/// Flips the value of the randomizeCornerValues flag
+	/// </summary>
+	public void ToggleRandomizeCornerValues() {
+		randomizeCornerValues = !randomizeCornerValues;
 
-        int count = 0;
-        float avg = 0.0f;
-        if (x - value >= 0 && z - value >= 0)
-        {
-            avg += area[x - value][z - value];
-            count++;
-        }
-        if (x - value >= 0 && z + value < lengthZ)
-        {
-            avg += area[x - value][z + value];
-            count++;
-        }
-        if (x + value < lenghtX && z - value >= 0)
-        {
-            avg += area[x + value][z - value];
-            count++;
-        }
-        if (x + value < lenghtX && z + value < lengthZ)
-        {
-            avg += area[x + value][z + value];
-            count++;
-        }
-        avg += random(value);
-        avg /= count;
-        area[x][z] = round(avg);
-    }
+		return;
+	}
 
-    void diamondStep(int[,] area, int x, int z, int value)
-    {
-        int count = 0;
-        float avg = 0.0f;
-        if (x - value >= 0)
-        {
-            avg += area[x - value][z];
-            count++;
-        }
-        if (x + value < lenghtX)
-        {
-            avg += area[x + value][z];
-            count++;
-        }
-        if (z - value >= 0)
-        {
-            avg += area[x][z - value];
-            count++;
-        }
-        if (z + value < lengthZ)
-        {
-            avg += area[x][z + value];
-            count++;
-        }
+	/// <summary>
+	/// Resets the values of the terrain. If randomizeCornerValues is true then the
+	/// corner heights will be randomized, else it will be flat.
+	/// </summary>
+	public void Reset() {
+		heights = new float[size, size];
 
-        avg += random(value);
-        avg /= count;
-        array[x][z] = (int)avg;
+		// If the corners need to be randomized
+		if (randomizeCornerValues) {
+			heights[0, 0] = Random.value;
+			heights[size - 1, 0] = Random.value;
+			heights[0, size - 1] = Random.value;
+			heights[size - 1, size - 1] = Random.value;
+		}
 
-        float random(int range)
-        {
-            return (rand() % (range * 2)) - range;
-        }
+		// Update the terrain data
+		data.SetHeights(0, 0, heights);
+
+		return;
+	}
+
+	/// <summary>
+	/// Executes the DiamondSquare algorithm on the terrain.
+	/// </summary>
+	public void ExecuteDiamondSquare() {
+		heights = new float[size, size];
+		float average, range = 0.5f;
+		int sideLength, halfSide, x, y;
+
+		// While the side length is greater than 1
+		for (sideLength = size - 1; sideLength > 1; sideLength /= 2) {
+			halfSide = sideLength / 2;
+
+			// Run Diamond Step
+			for (x = 0; x < size - 1; x += sideLength) {
+				for (y = 0; y < size - 1; y += sideLength) {
+					// Get the average of the corners
+					average = heights[x, y];
+					average += heights[x + sideLength, y];
+					average += heights[x, y + sideLength];
+					average += heights[x + sideLength, y + sideLength];
+					average /= 4.0f;
+
+					// Offset by a random value
+					average += (Random.value * (range * 2.0f)) - range;
+					heights[x + halfSide, y + halfSide] = average;
+				}
+			}
+
+			// Run Square Step
+			for (x = 0; x < size - 1; x += halfSide) {
+				for (y = (x + halfSide) % sideLength; y < size - 1; y += sideLength) {
+					// Get the average of the corners
+					average = heights[(x - halfSide + size - 1) % (size - 1), y];
+					average += heights[(x + halfSide) % (size - 1), y];
+					average += heights[x, (y + halfSide) % (size - 1)];
+					average += heights[x, (y - halfSide + size - 1) % (size - 1)];
+					average /= 4.0f;
+
+					// Offset by a random value
+					average += (Random.value * (range * 2.0f)) - range;
+
+					// Set the height value to be the calculated average
+					heights[x, y] = average;
+
+					// Set the height on the opposite edge if this is
+					// an edge piece
+					if (x == 0) {
+						heights[size - 1, y] = average;
+					}
+
+					if (y == 0) {
+						heights[x, size - 1] = average;
+					}
+				}
+			}
+
+			// Lower the random value range
+			range -= range * 0.5f * roughness;
+		}
+
+		// Update the terrain heights
+		data.SetHeights(0, 0, heights);
+
+		return;
+	}
+
+	/// <summary>
+	/// Returns the amount of vertices to skip using the given depth.
+	/// </summary>
+	/// <param name="depth">The vertice detail depth on the height array</param>
+	/// <returns>Amount of vertices to skip</returns>
+	public int GetStepSize(int depth) {
+		// Return an invalid step size if the depth is invalid
+		if (!ValidateDepth(depth)) {
+			return -1;
+		}
+
+		// Return the amount of vertices to skip
+		return (int)((size - 1) / Mathf.Pow(2, (depth - 1)));
+	}
+
+	/// <summary>
+	/// Returns the maximum depth for this terrain's size.
+	/// </summary>
+	/// <returns>Maximum depth for this terrain</returns>
+	public int MaxDepth() {
+		// 0.69314718056f = Natural Log of 2
+		return (int)((Mathf.Log(size - 1) / 0.69314718056f) + 1);
+	}
+
+	/// <summary>
+	/// Returns false if the depth is above zero and below maximum depth, true otheriwse
+	/// </summary>
+	/// <param name="depth">The vertice detail depth on the height array</param>
+	/// <returns></returns>
+	private bool ValidateDepth(int depth) {
+		if (depth > 0 && depth <= MaxDepth()) {
+			return true;
+		}
+
+		return false;
     }
 }
