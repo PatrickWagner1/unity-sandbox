@@ -18,7 +18,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The total size of the mesh
     /// </summary>
-    private int size = 9;
+    private int size = 10;
 
     /// <summary>
     /// Size of the sub meshes
@@ -35,7 +35,8 @@ public class DiamondSquareGenerator : MonoBehaviour
         this.createMesh(this.size);
 
 
-        gameObject.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
+        //gameObject.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
+        gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);        
         gameObject.transform.Rotate(Vector3.right, 90);
     }
 
@@ -54,11 +55,13 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <param name="height">Mesh height</param>
     void createMesh(int size)
     {
-		float[,] heights = this.diamondSquare(size, 5.0f, 20);
+		float[,] heights = this.diamondSquare(size, 1.0f, 20);
 
 		int totalSize = (int)Mathf.Pow(2, size) + 1;
-		int subSize = totalSize / MaxMeshSize;
-        int totalSubMesh = totalSize / subSize;
+		//int subSize = (totalSize / MaxMeshSize) + 1;
+        //int totalSubMesh = totalSize / subSize;
+        int subSize = totalSize;
+        int totalSubMesh = 1;
 
         for (int xSub = 0; xSub < totalSubMesh; xSub++)
         {
@@ -82,6 +85,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         meshGameObject.name = "SubMesh(" + xSubMeshCount + "," + ySubMeshCount + ")";
         MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
         Mesh mesh = new Mesh();
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         meshFilter.mesh = mesh;
 
         Vector3[] vertices = new Vector3[subSize * subSize];
@@ -143,7 +147,7 @@ public class DiamondSquareGenerator : MonoBehaviour
 
 	private float[,] diamondSquare(int size, float rough, int seed)
 	{
-		Random.InitState(seed);
+		Random.InitState((int)(Random.value*250.0f));
 		int depth = (int) Mathf.Pow(2, size);
 		int totalSize = depth + 1;
 		float[,] map = new float[totalSize, totalSize];
@@ -153,7 +157,7 @@ public class DiamondSquareGenerator : MonoBehaviour
 		map[depth, depth] = Random.value;
 
 		float average;
-		float range = 0.5f;
+		float range = 500.0f;
 		int halfSide;
 		
 		for (int sideLength = totalSize - 1; sideLength > 1; sideLength /= 2)
@@ -201,6 +205,4 @@ public class DiamondSquareGenerator : MonoBehaviour
 
 		return map;
 	}
-	
-	//private void add
 }
