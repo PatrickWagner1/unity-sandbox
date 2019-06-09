@@ -63,15 +63,27 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _HeightMax: 1
+    - _HeightMin: -1
     - _Metallic: 0
+    - _Middle: 1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _Scale: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.7169812, g: 0.40144756, b: 0.13866144, a: 1}
+    - _Color1: {r: 0.6170451, g: 0.8980392, b: 0.19215684, a: 1}
+    - _Color2: {r: 0.8666667, g: 0.7869587, b: 0.14509803, a: 1}
+    - _Color3: {r: 0.8018868, g: 0.51688695, b: 0.056737266, a: 1}
+    - _ColorBot: {r: 0.56396335, g: 0.9150943, b: 0.11654504, a: 1}
+    - _ColorMax: {r: 0.8301887, g: 0.5288546, b: 0.16838734, a: 1}
+    - _ColorMid: {r: 0.7998151, g: 0.8113208, b: 0.10332859, a: 1}
+    - _ColorMin: {r: 0.64891493, g: 0.9811321, b: 0.28230685, a: 1}
+    - _ColorTop: {r: 0.8207547, g: 0.45552206, b: 0.15098791, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

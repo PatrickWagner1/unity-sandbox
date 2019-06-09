@@ -288,7 +288,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 147032254}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 20, z: 0}
+  m_LocalPosition: {x: 10, y: 5, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1974001750}
@@ -516,6 +516,7 @@ GameObject:
   - component: {fileID: 423737883}
   - component: {fileID: 423737882}
   - component: {fileID: 423737881}
+  - component: {fileID: 423737884}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -535,35 +536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51e25feb3997b1d47a3cd4139a36b059, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gradient:
-    serializedVersion: 2
-    key0: {r: 0.54509807, g: 0.27058825, b: 0.07450981, a: 1}
-    key1: {r: 0, g: 0.764151, b: 0.109671585, a: 1}
-    key2: {r: 0, g: 0, b: 0, a: 0}
-    key3: {r: 0, g: 0, b: 0, a: 0}
-    key4: {r: 0, g: 0, b: 0, a: 0}
-    key5: {r: 0, g: 0, b: 0, a: 0}
-    key6: {r: 0, g: 0, b: 0, a: 0}
-    key7: {r: 0, g: 0, b: 0, a: 0}
-    ctime0: 11372
-    ctime1: 65535
-    ctime2: 0
-    ctime3: 0
-    ctime4: 0
-    ctime5: 0
-    ctime6: 0
-    ctime7: 0
-    atime0: 0
-    atime1: 65535
-    atime2: 0
-    atime3: 0
-    atime4: 0
-    atime5: 0
-    atime6: 0
-    atime7: 0
-    m_Mode: 0
-    m_NumColorKeys: 2
-    m_NumAlphaKeys: 2
+  mesh: {fileID: 0}
 --- !u!23 &423737882
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -615,6 +588,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &423737884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 423737880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbc798979ed5d724d97a3e2b961dd097, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &438237607
 GameObject:
   m_ObjectHideFlags: 0
