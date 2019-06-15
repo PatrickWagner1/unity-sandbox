@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FirstPersonControls : MonoBehaviour {
+public class FirstPersonControls : MonoBehaviour
+{
 
     // Basic behaviour variables
     public float movementSpeed = 1F;
@@ -17,7 +18,8 @@ public class FirstPersonControls : MonoBehaviour {
     private Rigidbody physicalParentBody;
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         // Set gravity vector
         Physics.gravity = new Vector3(0, -9.81F, 0);
 
@@ -41,39 +43,42 @@ public class FirstPersonControls : MonoBehaviour {
             Cursor.lockState = CursorLockMode.Locked;
 
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update()
+    {
         MouseController();
         KeyboardController();
-	}
+    }
 
     void MouseController()
     {
 
-        // Clamp is used tp apply limits to either side of the rotation's value
-        // Save the mouse movements of the single axis into variables
-         xRot += Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse X"), minX, maxX);
-         yRot -= Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse Y"), minY, maxY);
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            // Clamp is used tp apply limits to either side of the rotation's value
+            // Save the mouse movements of the single axis into variables
+            xRot += Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse X"), minX, maxX);
+            yRot -= Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse Y"), minY, maxY);
 
-        yRot = Mathf.Clamp(yRot, -90, 90);
+            yRot = Mathf.Clamp(yRot, -90, 90);
 
-        // Get a euler quanternion object, which saves a transformation without the z-axis.
-        // This is used so the camera doesnt start to tilt and stays in some form parallel to the ground like in common fps games.
-        Quaternion targetRot = Quaternion.Euler(new Vector3(yRot, xRot, 0.0F));
+            // Get a euler quanternion object, which saves a transformation without the z-axis.
+            // This is used so the camera doesnt start to tilt and stays in some form parallel to the ground like in common fps games.
+            Quaternion targetRot = Quaternion.Euler(new Vector3(yRot, xRot, 0.0F));
 
-        // Apply the tranformation with the euler object. 
-        transform.rotation = physicalParent.transform.rotation = targetRot; 
-        
-        //Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime);  <-- alternative rotation. not so direct but smoother.
+            // Apply the tranformation with the euler object. 
+            transform.rotation = physicalParent.transform.rotation = targetRot;
 
+            //Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime);  <-- alternative rotation. not so direct but smoother.
+        }
     }
 
     // Function handeling different Keyevents.
     void KeyboardController()
     {
         // Free the mouse for debugging
-        if(Input.GetKey(KeyCode.Escape))
+        if (Input.GetKey(KeyCode.Escape))
             Cursor.lockState = CursorLockMode.None;
 
         // Standard movement keys and the movement applied when pressing them
@@ -116,7 +121,7 @@ public class FirstPersonControls : MonoBehaviour {
             physicalParentBody.useGravity = true;
             useGravity = true;
         }
-            
+
     }
 
 

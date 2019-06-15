@@ -15,6 +15,7 @@ Shader "Custom/UnlitShader"
             #pragma fragment frag
             
             uniform float4 _LightColor0;
+            uniform int _SHOW_CONTOUR_LINES;
 
             struct appdata {
                 float4 vertex : POSITION;			
@@ -50,12 +51,16 @@ Shader "Custom/UnlitShader"
                 
                 float4 color = i.color - 1 + float4(diffuseReflection,1.0);
                 float height = i.height;
-                float sinAngle = length(dot(i.normal, float3(0,1,0))) / (length(i.normal) * length(float3(0,1,0)));
-                float angleConstant = 0.1 + 0.5 * (1 - sinAngle);
-                if (height % 10 > 10 - angleConstant && sinAngle < 0.99)
+                if (_SHOW_CONTOUR_LINES > 0)
                 {
-                    color = float4(0,0,0,1);
+                    float sinAngle = length(dot(i.normal, float3(0,1,0))) / (length(i.normal) * length(float3(0,1,0)));
+                    float angleConstant = 0.1 + 0.5 * (1 - sinAngle);
+                    if (height % 10 > 10 - angleConstant && sinAngle < 0.99)
+                    {
+                        color = float4(0,0,0,1);
+                    }
                 }
+                
                 return color;
             }
             

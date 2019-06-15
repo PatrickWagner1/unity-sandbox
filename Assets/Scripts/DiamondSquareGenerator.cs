@@ -12,7 +12,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The exponent for the side length of the mesh
     /// </summary>
-    private int size = 10;
+    private int size = 9;
 
     /// <summary>
     /// The roughness for the diamond square algorithm
@@ -24,6 +24,8 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// </summary>
     public static int seed = 0;
 
+    public static bool showContourLines = true;
+
     private float minHeight;
 
     private float maxHeight;
@@ -32,6 +34,10 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// The mesh for the terrain
     /// </summary>
     public Mesh mesh;
+
+    private Vector3[] tempVertices;
+
+    private float[] tempDiffHeights;
 
     public MeshCollider meshCollider;
 
@@ -49,6 +55,11 @@ public class DiamondSquareGenerator : MonoBehaviour
         gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
     }
 
+    void Awake()
+    {
+        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
+        showContourLinesToggle.isOn = DiamondSquareGenerator.showContourLines;
+    }
     /// <summary>
     /// Update method that gets called once per frame
     /// </summary>
@@ -62,6 +73,10 @@ public class DiamondSquareGenerator : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             this.onMovement();
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            this.setTempVertices();
         }
     }
 
@@ -84,6 +99,16 @@ public class DiamondSquareGenerator : MonoBehaviour
         this.mesh.RecalculateBounds();
     }
 
+    private void setTempVertices()
+    {
+        Vector3[] tempVertices = this.tempVertices;
+
+        for (int index = 0; index < tempVertices.Length; index++)
+        {
+            tempVertices[index].y += tempDiffHeights[index];
+        }
+    }
+    
     /// <summary>
     /// Creates a flat mesh.
     /// </summary>
@@ -154,6 +179,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         float[,] heights = this.diamondSquare();
 
         Vector3[] vertices = this.mesh.vertices;
+        Vector3[] tempVertices = new Vector3[vertices.Length];
         Color[] colors = new Color[vertices.Length];
         Vector2[] uvs = new Vector2[vertices.Length];
         for (int index = 0, z = 0; z < totalSize; z++)
@@ -171,6 +197,9 @@ public class DiamondSquareGenerator : MonoBehaviour
                 {
                     this.minHeight = height;
                 }
+
+                tempVertices[index] = vertices[index];
+
                 index++;
             }
         }
@@ -199,6 +228,8 @@ public class DiamondSquareGenerator : MonoBehaviour
         }
 
         this.mesh.vertices = vertices;
+        this.tempVertices = tempVertices;
+        this.tempDiffHeights = new float[tempVertices.Length];
         this.mesh.colors = colors;
         //this.mesh.uv = uvs;
         this.updateMesh();
@@ -291,13 +322,13 @@ public class DiamondSquareGenerator : MonoBehaviour
     private void onMovement()
     {
         // can be - and + depending on movement up or down
-        //float MouseSliderMovement = Input.GetAxis("Mouse ScrollWheel"); // for the mouse scroll wheel
-        float MouseSliderMovement = Input.GetAxis("Mouse Y"); //for the mouse/touchpad movement up/down
+        //float mouseSliderMovement = Input.GetAxis("Mouse ScrollWheel"); // for the mouse scroll wheel
+        float mouseSliderMovement = Input.GetAxis("Mouse Y"); //for the mouse/touchpad movement up/down
         // get current Position
         Vector3 currentPos = Input.mousePosition;
-        if (MouseSliderMovement != 0 && this.hitPosition != -Vector3.one)
+        if (mouseSliderMovement != 0 && this.hitPosition != -Vector3.one)
         {
-            this.useGaussianBell(this.hitPosition, MouseSliderMovement);
+            this.useGaussianBell(this.hitPosition, mouseSliderMovement);
         }
     }
 
@@ -313,6 +344,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         if (Physics.Raycast(ray, out hit))
         {
             this.hitPosition = this.getNearestVertexToPoint(hit.point);
+            this.tempDiffHeights = new float[this.tempVertices.Length];
         }
         else
         {
@@ -364,12 +396,14 @@ public class DiamondSquareGenerator : MonoBehaviour
     private void useGaussianBell(Vector3 VertexToChange, float heightFactor)
     {
         heightFactor *= 10;
-        float widthFactor = 0.01f;
-        Vector3[] vertices = this.mesh.vertices;
+        float widthFactor = 0.02f;
+        Vector3[] tempVertices = this.tempVertices;
+        Vector3[] vertices = new Vector3[tempVertices.Length];
+        float[] diffHeights = this.tempDiffHeights;
         Color[] colors = new Color[vertices.Length];
         for (int index = 0; index < vertices.Length; index++)
         {
-            Vector3 vertex = vertices[index];
+            Vector3 vertex = tempVertices[index];
             Vector3 diff = vertex - VertexToChange;
 
             // calculates the distance in x and z direction to between the two vertices
@@ -377,13 +411,11 @@ public class DiamondSquareGenerator : MonoBehaviour
 
             // calculate the height for the current vertex with the gaussian bell algorithm
             float diffHeight = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor;
-            float height = vertex.y;
-            if (diffHeight > 1)
-            {
-                height += diffHeight;
-            }
+            diffHeights[index] += diffHeight;
 
-            vertices[index].y = height;
+            float height = vertex.y + diffHeights[index];
+            vertex.y = height;
+            vertices[index] = vertex;
             height = height / this.maxHeight;
             if (height <= 0)
             {
@@ -394,8 +426,20 @@ public class DiamondSquareGenerator : MonoBehaviour
                 colors[index] = this.gradient.Evaluate(height);
             }
         }
+        this.tempDiffHeights = diffHeights;
         this.mesh.vertices = vertices;
         this.mesh.colors = colors;
         this.updateMesh();
+    }
+
+    public static void setShowContourLines(bool showContourLines)
+    {
+        DiamondSquareGenerator.showContourLines = showContourLines;
+        int showContourLinesInteger = 0;
+        if (showContourLines)
+        {
+            showContourLinesInteger = 42;
+        }
+        Shader.SetGlobalInt("_SHOW_CONTOUR_LINES", showContourLinesInteger);
     }
 }
