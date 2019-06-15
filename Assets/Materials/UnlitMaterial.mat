@@ -7,16 +7,15 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ColorMap
+  m_Name: UnlitMaterial
   m_Shader: {fileID: 4800000, guid: 4140f4c37cd632d40a396b4511ed8536, type: 3}
   m_ShaderKeywords: 
-  m_LightmapFlags: 0
+  m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses:
-  - ALWAYS
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -57,54 +56,28 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BlendOp: 0
     - _BumpScale: 1
-    - _CameraFadingEnabled: 0
-    - _CameraFarFadeDistance: 2
-    - _CameraNearFadeDistance: 1
-    - _ColorMode: 0
-    - _Cull: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DistortionBlend: 0.5
-    - _DistortionEnabled: 0
-    - _DistortionStrength: 1
-    - _DistortionStrengthScaled: 0
     - _DstBlend: 0
-    - _EmissionEnabled: 0
-    - _FlipbookMode: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightMax: 1
     - _HeightMin: 0
-    - _LightingEnabled: 0
     - _Metallic: 0
-    - _Middle: 1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Scale: 1
     - _SmoothnessTextureChannel: 0
-    - _SoftParticlesEnabled: 0
-    - _SoftParticlesFarFadeDistance: 1
-    - _SoftParticlesNearFadeDistance: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
-    - _Color: {r: 0.7169812, g: 0.40144756, b: 0.13866144, a: 1}
-    - _Color1: {r: 0.754717, g: 0.35771343, b: 0.09611962, a: 1}
-    - _Color2: {r: 0.8, g: 0.5176471, b: 0.05490196, a: 1}
-    - _Color3: {r: 0.8666667, g: 0.7882353, b: 0.14509805, a: 1}
-    - _Color4: {r: 0.6156863, g: 0.8980392, b: 0.19215687, a: 1}
-    - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
-    - _ColorBot: {r: 0.56396335, g: 0.9150943, b: 0.11654504, a: 1}
-    - _ColorMax: {r: 0.8301887, g: 0.5288546, b: 0.16838734, a: 1}
-    - _ColorMid: {r: 0.7998151, g: 0.8113208, b: 0.10332859, a: 1}
-    - _ColorMin: {r: 0.64891493, g: 0.9811321, b: 0.28230685, a: 1}
-    - _ColorTop: {r: 0.8207547, g: 0.45552206, b: 0.15098791, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color1: {r: 1, g: 1, b: 1, a: 1}
+    - _Color2: {r: 1, g: 1, b: 1, a: 1}
+    - _Color3: {r: 1, g: 1, b: 1, a: 1}
+    - _Color4: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}

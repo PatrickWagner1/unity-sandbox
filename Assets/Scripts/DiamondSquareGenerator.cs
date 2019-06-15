@@ -33,9 +33,11 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// </summary>
     public Mesh mesh;
 
+    public MeshCollider meshCollider;
+
     private Vector3 hitPosition;
 
-    //public Gradient gradient;
+    public Gradient gradient;
 
     /// <summary>
     /// Initial method
@@ -98,12 +100,12 @@ public class DiamondSquareGenerator : MonoBehaviour
         MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
         this.mesh = new Mesh();
         this.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        meshFilter.mesh = this.mesh;
-        MeshCollider meshCollider = meshGameObject.AddComponent<MeshCollider>();
-        meshCollider.sharedMesh = this.mesh;
+        meshFilter.sharedMesh = this.mesh;
+        this.meshCollider = meshGameObject.AddComponent<MeshCollider>();
+        this.meshCollider.sharedMesh = this.mesh;
 
         Vector3[] vertices = new Vector3[totalSize * totalSize];
-        //Color[] colors = new Color[vertices.Length];
+        Color[] colors = new Color[vertices.Length];
         Vector2[] uvs = new Vector2[vertices.Length];
         int[] triangles = new int[6 * ((totalSize - 1) * (totalSize - 1))];
 
@@ -113,8 +115,8 @@ public class DiamondSquareGenerator : MonoBehaviour
             for (int x = 0; x < totalSize; x++)
             {
                 vertices[index] = new Vector3(x, 0, z);
-                //colors[index] = gradient.Evaluate(0);
                 uvs[index] = new Vector2(x, z);
+                colors[index] = Color.Lerp(Color.green, Color.red, uvs[index].y);
 
                 index++;
             }
@@ -139,7 +141,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         this.mesh.vertices = vertices;
         this.mesh.triangles = triangles;
         //this.mesh.colors = colors;
-        this.mesh.uv = uvs;
+        //this.mesh.uv = uvs;
         this.updateMesh();
 
         this.generateMeshHeights();
@@ -154,7 +156,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         float[,] heights = this.diamondSquare();
 
         Vector3[] vertices = this.mesh.vertices;
-        //Color[] colors = new Color[vertices.Length];
+        Color[] colors = new Color[vertices.Length];
         Vector2[] uvs = new Vector2[vertices.Length];
         for (int index = 0, z = 0; z < totalSize; z++)
         {
@@ -175,20 +177,31 @@ public class DiamondSquareGenerator : MonoBehaviour
             }
         }
 
-        /*for (int index = 0, z = 0; z < totalSize; z++)
+        Debug.Log(this.maxHeight);
+        minHeight = 0;
+        this.maxHeight = 100;
+        for (int index = 0, z = 0; z < totalSize; z++)
         {
             for (int x = 0; x < totalSize; x++)
             {
-                //float height = Mathf.InverseLerp(this.minHeight, this.maxHeight, heights[x, z]);
-                //colors[index] = gradient.Evaluate(height);
                 uvs[index] = new Vector2(x, z);
+                //colors[index] = Color.Lerp(Color.green, Color.red, uvs[index].y);
+                //float height = Mathf.InverseLerp(minHeight, maxHeight, vertices[index].y);
+                float height = vertices[index].y / this.maxHeight;
+                if (height <= 0)
+                {
+                    colors[index] = new Color(0.118f, 0.51f, 0.902f);
+                }
+                else
+                {
+                    colors[index] = this.gradient.Evaluate(height);
+                }
                 index++;
             }
         }
-        */
 
         this.mesh.vertices = vertices;
-        //this.mesh.colors = colors;
+        this.mesh.colors = colors;
         //this.mesh.uv = uvs;
         this.updateMesh();
     }
@@ -375,6 +388,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         heightFactor *= 10;
         float widthFactor = 0.01f;
         Vector3[] vertices = this.mesh.vertices;
+        Color[] colors = new Color[vertices.Length];
         for (int index = 0; index < vertices.Length; index++)
         {
             Vector3 vertex = vertices[index];
@@ -387,8 +401,18 @@ public class DiamondSquareGenerator : MonoBehaviour
             float height = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor + vertex.y;
 
             vertices[index].y = height;
+            height = height / this.maxHeight;
+            if (height <= 0)
+            {
+                colors[index] = new Color(0.118f, 0.51f, 0.902f);
+            }
+            else
+            {
+                colors[index] = this.gradient.Evaluate(height);
+            }
         }
         this.mesh.vertices = vertices;
+        this.mesh.colors = colors;
         this.updateMesh();
     }
 }
