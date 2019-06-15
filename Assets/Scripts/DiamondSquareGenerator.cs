@@ -17,12 +17,12 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The roughness for the diamond square algorithm
     /// </summary>
-    private float rough;
+    public static float rough = 1.0f;
 
     /// <summary>
     /// The seed for the random numbers for the diamond square algorithm
     /// </summary>
-    private int seed;
+    public static int seed = 0;
 
     private float minHeight;
 
@@ -44,8 +44,6 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// /// </summary>
     void Start()
     {
-        this.rough = 1.0f;
-        this.seed = 100;
         this.createMesh();
 
         gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -212,7 +210,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <returns>Map of heights</returns>
     private float[,] diamondSquare()
     {
-        Random.InitState(this.seed);
+        Random.InitState(DiamondSquareGenerator.seed);
         int totalSize = this.getTotalSize();
         int depth = totalSize - 1;
         float[,] map = new float[totalSize, totalSize];
@@ -222,7 +220,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         map[depth, depth] = Random.value;
 
         float average;
-        float range = this.seed;
+        float range = DiamondSquareGenerator.seed;
         int halfSide;
 
         for (int sideLength = totalSize - 1; sideLength > 1; sideLength /= 2)
@@ -266,7 +264,7 @@ public class DiamondSquareGenerator : MonoBehaviour
                 }
             }
 
-            range -= range * 0.5f * this.rough;
+            range -= range * 0.5f * DiamondSquareGenerator.rough;
         }
 
         return map;
@@ -284,26 +282,6 @@ public class DiamondSquareGenerator : MonoBehaviour
         }
 
         this.mesh.vertices = vertices;
-    }
-
-    /// <summary>
-    /// Sets the roughness and recalculate the mesh heights.
-    /// </summary>
-    /// <param name="rough">roughness</param>
-    public void OnRoughChanged(float rough)
-    {
-        this.rough = rough;
-        this.generateMeshHeights();
-    }
-
-    /// <summary>
-    /// Sets the seed and recalculate the mesh heights.
-    /// </summary>
-    /// <param name="seed">seed</param>
-    public void OnSeedChanged(float seed)
-    {
-        this.seed = (int)seed;
-        this.generateMeshHeights();
     }
 
     /// <summary>
@@ -398,7 +376,12 @@ public class DiamondSquareGenerator : MonoBehaviour
             float dist = Mathf.Sqrt(Mathf.Pow(diff.x, 2) + Mathf.Pow(diff.z, 2));
 
             // calculate the height for the current vertex with the gaussian bell algorithm
-            float height = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor + vertex.y;
+            float diffHeight = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor;
+            float height = vertex.y;
+            if (diffHeight > 1)
+            {
+                height += diffHeight;
+            }
 
             vertices[index].y = height;
             height = height / this.maxHeight;

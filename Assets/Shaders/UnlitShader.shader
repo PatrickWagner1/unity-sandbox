@@ -25,6 +25,7 @@ Shader "Custom/UnlitShader"
                 float4 vertex : SV_POSITION;
                 float4 color : COLOR;
                 float3 normal : NORMAL;
+                float height : POSITION_HEIGHT;
             };
             
             v2f vert(appdata v) {
@@ -33,6 +34,7 @@ Shader "Custom/UnlitShader"
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.color = v.color;
                 o.normal = v.normal;
+                o.height = v.vertex.y;
                 return o;			
             }
             
@@ -47,6 +49,13 @@ Shader "Custom/UnlitShader"
                 float3 diffuseReflection = atten * _LightColor0.xyz * max(0.0, dot(normalDirection, lightDirection));
                 
                 float4 color = i.color - 1 + float4(diffuseReflection,1.0);
+                float height = i.height;
+                float sinAngle = length(dot(i.normal, float3(0,1,0))) / (length(i.normal) * length(float3(0,1,0)));
+                float angleConstant = 0.1 + 0.5 * (1 - sinAngle);
+                if (height % 10 > 10 - angleConstant && sinAngle < 0.99)
+                {
+                    color = float4(0,0,0,1);
+                }
                 return color;
             }
             

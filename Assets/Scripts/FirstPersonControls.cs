@@ -54,7 +54,7 @@ public class FirstPersonControls : MonoBehaviour {
         // Clamp is used tp apply limits to either side of the rotation's value
         // Save the mouse movements of the single axis into variables
          xRot += Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse X"), minX, maxX);
-        // yRot -= Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse Y"), minY, maxY);
+         yRot -= Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse Y"), minY, maxY);
 
         yRot = Mathf.Clamp(yRot, -90, 90);
 
