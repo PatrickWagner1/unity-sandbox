@@ -12,7 +12,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The exponent for the side length of the mesh
     /// </summary>
-    private int size = 9;
+    private int size = 10;
 
     /// <summary>
     /// The roughness for the diamond square algorithm
@@ -22,7 +22,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// <summary>
     /// The seed for the random numbers for the diamond square algorithm
     /// </summary>
-    public static int seed = 0;
+    public static int seed = 90;
 
     public static bool showContourLines = true;
 
@@ -35,11 +35,13 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// </summary>
     public Mesh mesh;
 
+    public MeshCollider meshCollider;
+
+    private MeshCollider tempMeshCollider;
+
     private Vector3[] tempVertices;
 
     private float[] tempDiffHeights;
-
-    public MeshCollider meshCollider;
 
     private Vector3 hitPosition;
 
@@ -50,6 +52,7 @@ public class DiamondSquareGenerator : MonoBehaviour
     /// /// </summary>
     void Start()
     {
+        Debug.Log("enabled");
         this.createMesh();
 
         gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -107,6 +110,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         {
             tempVertices[index].y += tempDiffHeights[index];
         }
+        //this.meshCollider.sharedMesh = this.mesh;
     }
     
     /// <summary>
@@ -125,7 +129,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         this.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         meshFilter.sharedMesh = this.mesh;
         this.meshCollider = meshGameObject.AddComponent<MeshCollider>();
-        this.meshCollider.sharedMesh = this.mesh;
+        this.tempMeshCollider = new MeshCollider();
 
         Vector3[] vertices = new Vector3[totalSize * totalSize];
         Color[] colors = new Color[vertices.Length];
@@ -231,6 +235,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         this.tempVertices = tempVertices;
         this.tempDiffHeights = new float[tempVertices.Length];
         this.mesh.colors = colors;
+        this.meshCollider.sharedMesh = this.mesh;
         //this.mesh.uv = uvs;
         this.updateMesh();
     }

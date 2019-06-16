@@ -39,8 +39,8 @@ public class FirstPersonControls : MonoBehaviour
         physicalParentBody.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         // Lock the cursor in the middle of the screen to achieve a fps handling
-        if (Cursor.lockState != CursorLockMode.Locked)
-            Cursor.lockState = CursorLockMode.Locked;
+        //if (Cursor.lockState != CursorLockMode.Locked)
+        //    Cursor.lockState = CursorLockMode.Locked;
 
     }
 
@@ -54,7 +54,7 @@ public class FirstPersonControls : MonoBehaviour
     void MouseController()
     {
 
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetKey(KeyCode.LeftControl) || useGravity)
         {
             // Clamp is used tp apply limits to either side of the rotation's value
             // Save the mouse movements of the single axis into variables

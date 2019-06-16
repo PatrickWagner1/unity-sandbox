@@ -6,11 +6,6 @@ using UnityEngine.SceneManagement;
 public class SceneInteraction : MonoBehaviour
 {
 
-    public void LoadUnitySandobx()
-    {
-        SceneManager.LoadScene("unity-sandbox");
-    }
-
     public void OpenMainMenu()
     {
         SceneManager.LoadScene("menu");
