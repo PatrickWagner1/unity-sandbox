@@ -29,7 +29,7 @@ public class SceneInteraction : MonoBehaviour
         TerrainObject.seed = (int)seed;
     }
 
-    public void OnContourLinesChanged(bool showContourLines)
+    public static void changeContourLines(bool showContourLines)
     {
         TerrainObject.showContourLines = showContourLines;
         int showContourLinesInteger = 0;
@@ -38,5 +38,10 @@ public class SceneInteraction : MonoBehaviour
             showContourLinesInteger = 42;
         }
         Shader.SetGlobalInt("_SHOW_CONTOUR_LINES", showContourLinesInteger);
+    }
+
+    public void OnContourLinesChanged(bool showContourLines)
+    {
+        SceneInteraction.changeContourLines(showContourLines);
     }
 }

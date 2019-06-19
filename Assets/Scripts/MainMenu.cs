@@ -6,9 +6,13 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
-    
+
+    private GameObject loadingCircle;
     public void Start()
     {
+        loadingCircle = GameObject.Find("LoadingCircle");
+        //loadingCircle.SetActive(false);
+
         Slider seedSlider = GameObject.Find("SeedSlider").GetComponent<Slider>();
         float seed = TerrainObject.seed;
         if (seed < 100)
@@ -24,6 +28,7 @@ public class MainMenu : MonoBehaviour
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
     }
 
+
     public void StartUnitySandobx()
     {
         StartCoroutine(LoadUnitySandbox());
@@ -36,13 +41,13 @@ public class MainMenu : MonoBehaviour
         CanvasGroup canvasGroup = GameObject.Find("Canvas").GetComponent<CanvasGroup>();
         canvasGroup.blocksRaycasts = false;
         GameObject.Find("StartSandboxButton").SetActive(false);
-        Text loadText = GameObject.Find("LoadText").GetComponent<Text>();
+        loadingCircle.SetActive(true);
         loadSandbox.allowSceneActivation = true;
 
         while (!loadSandbox.isDone)
         {
             //Output the current progress
-            loadText.text = "Loading progress: " + (loadSandbox.progress * 100) + "%";
+            
 
             yield return null;
         }

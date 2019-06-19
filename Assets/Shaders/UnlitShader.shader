@@ -50,6 +50,12 @@ Shader "Custom/UnlitShader"
                 float height : POSITION_HEIGHT;
                 float4 posWorld : TEXCOORD1;
                 float2 uv : TEXCOORD0;
+
+                // these three vectors will hold a 3x3 rotation matrix
+                // that transforms from tangent to world space
+                //half3 tspace0 : TEXCOORD2;
+                //half3 tspace1 : TEXCOORD3;
+                //half3 tspace2  : TEXCOORD4;
             };
             
             v2f vert(appdata v) {
@@ -91,7 +97,7 @@ Shader "Custom/UnlitShader"
                 if (height == 0)
                 {
 
-                    float3 normal = normalize((UnpackNormal(tex2D(_NormalMap, i.uv)) + UnpackNormal(tex2D(_NormalMap2, i.uv))));
+                    float3 normal = normalize(normalize((UnpackNormal(tex2D(_NormalMap, i.uv)) + UnpackNormal(tex2D(_NormalMap2, i.uv)))));
                     //Phong Shader
                     float3 viewDirection = normalize(_WorldSpaceCameraPos - i.posWorld.xyz);
 

@@ -48,13 +48,11 @@ public class MouseScript : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
-            Debug.Log("hit!");
             this.hitVertexIndex = this.getNearestVertexIndexToPoint(hit.point);
             this.isEditMode = true;
         }
         else
         {
-            Debug.Log("No hit");
             this.hitVertexIndex = -1;
         }
     }
@@ -99,8 +97,8 @@ public class MouseScript : MonoBehaviour
         }
         terrain.tempVertices = tempVertices;
         terrain.tempDiffHeights = new float[tempVertices.Length];
+        this.recalculateBuoyPosition();
         this.isEditMode = false;
-        //this.meshCollider.sharedMesh = this.mesh;
     }
 
     /// <summary>
@@ -174,5 +172,38 @@ public class MouseScript : MonoBehaviour
 
         terrain.tempDiffHeights = diffHeights;
         terrain.updateMesh(vertices, colors);
+    }
+
+    public void recalculateBuoyPosition()
+    {
+        float minHeight = Mathf.Infinity;
+        int minHeightVertexIndex = 0;
+        Vector3[] tempVertices = terrain.tempVertices;
+
+        for (int index = 0; index < tempVertices.Length; index++)
+        {
+            float height = tempVertices[index].y;
+
+            if (height < minHeight)
+            {
+                minHeight = height;
+                minHeightVertexIndex = index;
+            }
+        }
+
+        if (terrain.buoyPrefab != null)
+        {
+            if (minHeight <= 0)
+            {
+                if (terrain.buoy == null)
+                {
+                    terrain.buoy = Instantiate(terrain.buoyPrefab, terrain.mesh.vertices[minHeightVertexIndex] * 0.05f, Quaternion.Euler(-90, 0, 0));
+                }
+                terrain.buoy.transform.position = terrain.mesh.vertices[minHeightVertexIndex] * 0.05f;
+            } else if (terrain.buoy != null)
+            {
+                Destroy(terrain.buoy);
+            }
+        }
     }
 }

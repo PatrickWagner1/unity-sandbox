@@ -22,8 +22,6 @@ public class TerrainObject : MonoBehaviour
 
     public static bool showContourLines = true;
 
-    private int minHeightVertexIndex;
-
     public float maxHeight = 100;
 
     /// <summary>
@@ -43,6 +41,8 @@ public class TerrainObject : MonoBehaviour
 
     public GameObject buoyPrefab;
 
+    public GameObject buoy;
+
     /// <summary>
     /// Initial method
     /// /// </summary>
@@ -51,6 +51,7 @@ public class TerrainObject : MonoBehaviour
         Debug.Log("Awake");
         Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
+        SceneInteraction.changeContourLines(TerrainObject.showContourLines);
 
         this.createMesh();
 
@@ -152,7 +153,10 @@ public class TerrainObject : MonoBehaviour
         Vector3[] vertices = this.mesh.vertices;
         Vector3[] tempVertices = new Vector3[vertices.Length];
         Color[] colors = new Color[vertices.Length];
-        float minHeight = 0;
+
+        float minHeight = Mathf.Infinity;
+        int minHeightVertexIndex = 0;
+
         for (int index = 0, z = 0; z < totalSize; z++)
         {
             for (int x = 0; x < totalSize; x++)
@@ -160,15 +164,15 @@ public class TerrainObject : MonoBehaviour
                 float height = heights[x, z];
                 vertices[index].y = height;
 
-                if (height > minHeight)
-                {
-                    minHeight = height;
-                    this.minHeightVertexIndex = index;
-                }
-
                 tempVertices[index] = vertices[index];
 
                 colors[index] = this.getColorFromHeight(height);
+
+                if (height < minHeight)
+                {
+                    minHeight = height;
+                    minHeightVertexIndex = index;
+                }
 
                 index++;
             }
@@ -180,8 +184,11 @@ public class TerrainObject : MonoBehaviour
         this.meshCollider.sharedMesh = this.mesh;
 
         this.updateMesh(vertices, colors);
-
-        Instantiate(this.buoyPrefab, this.mesh.vertices[this.minHeightVertexIndex], Quaternion.identity);
+        if (minHeight <= 0 && this.buoyPrefab != null)
+        {
+            this.buoyPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            this.buoy = Instantiate(this.buoyPrefab, this.mesh.vertices[minHeightVertexIndex] * 0.05f, Quaternion.Euler(-90, 0, 0));
+        }
     }
 
     /// <summary>
