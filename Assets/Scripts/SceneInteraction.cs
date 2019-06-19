@@ -17,7 +17,7 @@ public class SceneInteraction : MonoBehaviour
     /// <param name="rough">roughness</param>
     public void OnRoughChanged(float rough)
     {
-        DiamondSquareGenerator.rough = rough;
+        TerrainObject.rough = rough;
     }
 
     /// <summary>
@@ -26,11 +26,17 @@ public class SceneInteraction : MonoBehaviour
     /// <param name="seed">seed</param>
     public void OnSeedChanged(float seed)
     {
-        DiamondSquareGenerator.seed = (int)seed;
+        TerrainObject.seed = (int)seed;
     }
 
     public void OnContourLinesChanged(bool showContourLines)
     {
-        DiamondSquareGenerator.setShowContourLines(showContourLines);
+        TerrainObject.showContourLines = showContourLines;
+        int showContourLinesInteger = 0;
+        if (showContourLines)
+        {
+            showContourLinesInteger = 42;
+        }
+        Shader.SetGlobalInt("_SHOW_CONTOUR_LINES", showContourLinesInteger);
     }
 }

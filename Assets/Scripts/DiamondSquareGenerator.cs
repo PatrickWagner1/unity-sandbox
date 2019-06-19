@@ -1,253 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
 /// Generates a mesh and random terrain using the Diamond Square algorithm
 /// </summary>
-public class DiamondSquareGenerator : MonoBehaviour
+public class DiamondSquareGenerator
 {
-
-    /// <summary>
-    /// The exponent for the side length of the mesh
-    /// </summary>
-    private int size = 10;
-
-    /// <summary>
-    /// The roughness for the diamond square algorithm
-    /// </summary>
-    public static float rough = 1.0f;
-
-    /// <summary>
-    /// The seed for the random numbers for the diamond square algorithm
-    /// </summary>
-    public static int seed = 90;
-
-    public static bool showContourLines = true;
-
-    private float minHeight;
-
-    private float maxHeight;
-
-    /// <summary>
-    /// The mesh for the terrain
-    /// </summary>
-    public Mesh mesh;
-
-    public MeshCollider meshCollider;
-
-    private MeshCollider tempMeshCollider;
-
-    private Vector3[] tempVertices;
-
-    private float[] tempDiffHeights;
-
-    private Vector3 hitPosition;
-
-    public Gradient gradient;
-
-    /// <summary>
-    /// Initial method
-    /// /// </summary>
-    void Start()
-    {
-        Debug.Log("enabled");
-        this.createMesh();
-
-        gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
-    }
-
-    void Awake()
-    {
-        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
-        showContourLinesToggle.isOn = DiamondSquareGenerator.showContourLines;
-    }
-    /// <summary>
-    /// Update method that gets called once per frame
-    /// </summary>
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            this.setHitPosition();
-        }
-
-        if (Input.GetMouseButton(0))
-        {
-            this.onMovement();
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            this.setTempVertices();
-        }
-    }
 
     /// <summary>
     /// Calculates the total side length of the mesh.
     /// </summary>
     /// <returns>The total side length</returns>
-    private int getTotalSize()
+    public static int getTotalSize(int size)
     {
-        return (int)Mathf.Pow(2, this.size) + 1;
-    }
-
-    /// <summary>
-    /// Updates the mesh by eliminating the negatives and recalculating normals and bounds
-    /// </summary>
-    private void updateMesh()
-    {
-        this.eliminateNegativeHeights();
-        this.mesh.RecalculateNormals();
-        this.mesh.RecalculateBounds();
-    }
-
-    private void setTempVertices()
-    {
-        Vector3[] tempVertices = this.tempVertices;
-
-        for (int index = 0; index < tempVertices.Length; index++)
-        {
-            tempVertices[index].y += tempDiffHeights[index];
-        }
-        //this.meshCollider.sharedMesh = this.mesh;
-    }
-    
-    /// <summary>
-    /// Creates a flat mesh.
-    /// </summary>
-    void createMesh()
-    {
-        int totalSize = this.getTotalSize();
-
-        GameObject meshGameObject = new GameObject();
-        meshGameObject.transform.SetParent(gameObject.transform);
-        meshGameObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
-        meshGameObject.name = "SubMesh(" + totalSize + "x" + totalSize + ")";
-        MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
-        this.mesh = new Mesh();
-        this.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        meshFilter.sharedMesh = this.mesh;
-        this.meshCollider = meshGameObject.AddComponent<MeshCollider>();
-        this.tempMeshCollider = new MeshCollider();
-
-        Vector3[] vertices = new Vector3[totalSize * totalSize];
-        Color[] colors = new Color[vertices.Length];
-        Vector2[] uvs = new Vector2[vertices.Length];
-        int[] triangles = new int[6 * ((totalSize - 1) * (totalSize - 1))];
-
-        // Fill vertices and uvs
-        for (int index = 0, z = 0; z < totalSize; z++)
-        {
-            for (int x = 0; x < totalSize; x++)
-            {
-                vertices[index] = new Vector3(x, 0, z);
-                uvs[index] = new Vector2(x, z);
-                colors[index] = Color.Lerp(Color.green, Color.red, uvs[index].y);
-
-                index++;
-            }
-        }
-
-        // Fill triangles
-        for (int triangleIndex = 0, index = 0, z = 0; z < totalSize - 1; z++)
-        {
-            for (int x = 0; x < totalSize - 1; x++)
-            {
-                triangles[triangleIndex++] = index;
-                triangles[triangleIndex++] = index + totalSize;
-                triangles[triangleIndex++] = index + 1;
-                triangles[triangleIndex++] = index + 1;
-                triangles[triangleIndex++] = index + totalSize;
-                triangles[triangleIndex++] = index + totalSize + 1;
-                index++;
-            }
-            index++;
-        }
-
-        this.mesh.vertices = vertices;
-        this.mesh.triangles = triangles;
-        //this.mesh.colors = colors;
-        //this.mesh.uv = uvs;
-        this.updateMesh();
-
-        this.generateMeshHeights();
-    }
-
-    /// <summary>
-    /// Sets the vertices heights of the mesh with heights calculated by the diamond square algorithm.
-    /// </summary>
-    void generateMeshHeights()
-    {
-        int totalSize = this.getTotalSize();
-        float[,] heights = this.diamondSquare();
-
-        Vector3[] vertices = this.mesh.vertices;
-        Vector3[] tempVertices = new Vector3[vertices.Length];
-        Color[] colors = new Color[vertices.Length];
-        Vector2[] uvs = new Vector2[vertices.Length];
-        for (int index = 0, z = 0; z < totalSize; z++)
-        {
-            for (int x = 0; x < totalSize; x++)
-            {
-                float height = heights[x, z];
-                vertices[index].y = height;
-
-                if (height > this.maxHeight)
-                {
-                    this.maxHeight = height;
-                }
-                if (height < this.minHeight)
-                {
-                    this.minHeight = height;
-                }
-
-                tempVertices[index] = vertices[index];
-
-                index++;
-            }
-        }
-
-        Debug.Log(this.maxHeight);
-        minHeight = 0;
-        this.maxHeight = 100;
-        for (int index = 0, z = 0; z < totalSize; z++)
-        {
-            for (int x = 0; x < totalSize; x++)
-            {
-                uvs[index] = new Vector2(x, z);
-                //colors[index] = Color.Lerp(Color.green, Color.red, uvs[index].y);
-                //float height = Mathf.InverseLerp(minHeight, maxHeight, vertices[index].y);
-                float height = vertices[index].y / this.maxHeight;
-                if (height <= 0)
-                {
-                    colors[index] = new Color(0.118f, 0.51f, 0.902f);
-                }
-                else
-                {
-                    colors[index] = this.gradient.Evaluate(height);
-                }
-                index++;
-            }
-        }
-
-        this.mesh.vertices = vertices;
-        this.tempVertices = tempVertices;
-        this.tempDiffHeights = new float[tempVertices.Length];
-        this.mesh.colors = colors;
-        this.meshCollider.sharedMesh = this.mesh;
-        //this.mesh.uv = uvs;
-        this.updateMesh();
+        return (int)Mathf.Pow(2, size) + 1;
     }
 
     /// <summary>
     /// Returns a map of heights calculated with the diamond square algorithm.
     /// </summary>
     /// <returns>Map of heights</returns>
-    private float[,] diamondSquare()
+    public static float[,] diamondSquare(int size, float rough, int seed)
     {
-        Random.InitState(DiamondSquareGenerator.seed);
-        int totalSize = this.getTotalSize();
+        Random.InitState(seed);
+        int totalSize = getTotalSize(size);
         int depth = totalSize - 1;
         float[,] map = new float[totalSize, totalSize];
         map[0, 0] = Random.value;
@@ -256,7 +33,7 @@ public class DiamondSquareGenerator : MonoBehaviour
         map[depth, depth] = Random.value;
 
         float average;
-        float range = DiamondSquareGenerator.seed;
+        float range = seed;
         int halfSide;
 
         for (int sideLength = totalSize - 1; sideLength > 1; sideLength /= 2)
@@ -300,151 +77,9 @@ public class DiamondSquareGenerator : MonoBehaviour
                 }
             }
 
-            range -= range * 0.5f * DiamondSquareGenerator.rough;
+            range -= range * 0.5f * rough;
         }
 
         return map;
-    }
-
-    /// <summary>
-    /// Sets all negative vertex heights to 0
-    /// </summary>
-    private void eliminateNegativeHeights()
-    {
-        Vector3[] vertices = this.mesh.vertices;
-        for (int index = 0; index < vertices.Length; index++)
-        {
-            vertices[index].y = Mathf.Max(0, vertices[index].y);
-        }
-
-        this.mesh.vertices = vertices;
-    }
-
-    /// <summary>
-    /// Moves the terrain up or down on the current hitPosition and its neighbours.
-    /// The deflection depending on the mouse scroll wheel delta
-    /// </summary>
-    private void onMovement()
-    {
-        // can be - and + depending on movement up or down
-        //float mouseSliderMovement = Input.GetAxis("Mouse ScrollWheel"); // for the mouse scroll wheel
-        float mouseSliderMovement = Input.GetAxis("Mouse Y"); //for the mouse/touchpad movement up/down
-        // get current Position
-        Vector3 currentPos = Input.mousePosition;
-        if (mouseSliderMovement != 0 && this.hitPosition != -Vector3.one)
-        {
-            this.useGaussianBell(this.hitPosition, mouseSliderMovement);
-        }
-    }
-
-    /// <summary>
-    /// Sets the hitPosition to the nearest Vertex of the mouse position if a hit is found,
-    /// otherwise the hitPosition is set to (-1,-1,-1).
-    /// </summary>
-    private void setHitPosition()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit))
-        {
-            this.hitPosition = this.getNearestVertexToPoint(hit.point);
-            this.tempDiffHeights = new float[this.tempVertices.Length];
-        }
-        else
-        {
-            this.hitPosition = -Vector3.one;
-        }
-    }
-
-    /// <summary>
-    /// Returns the nearest Vertex from a given Vector3 point
-    /// /// </summary>
-    /// <param name="point">The point to calculate the nearest Vertex from</param>
-    /// <returns>The nearest Vertex of the mesh</returns>
-    private Vector3 getNearestVertexToPoint(Vector3 point)
-    {
-        // convert point to local space
-        point = transform.InverseTransformPoint(point);
-
-        // get vertices of mesh
-        Mesh mesh = this.mesh;
-        Vector3[] vertices = mesh.vertices;
-
-        // declare and initialize helper variables
-        float minDistance = Mathf.Infinity;
-        Vector3 nearestVertex = Vector3.zero;
-
-        // scan all vertices to find nearest
-        for (int index = 0; index < vertices.Length; index++)
-        {
-            // get difference between point and each vertex and calculate its quare diffrenece
-            Vector3 diff = point - vertices[index];
-            float dist = diff.sqrMagnitude;
-
-            // distance smaller than current detected smallest distance?
-            if (dist < minDistance)
-            {
-                // set new current smallest distance and nearestVertex
-                minDistance = dist;
-                nearestVertex = vertices[index];
-            }
-        }
-        return nearestVertex;
-    }
-
-    /// <summary>
-    /// Change the height of the given vertex and its neighbors with the gaussian bell algroithm
-    /// </summary>
-    /// <param name="vertexToChange">vertex to change</param>
-    /// <param name="heightFactor">factor to change the height (will be multiplized by 10)</param>
-    private void useGaussianBell(Vector3 VertexToChange, float heightFactor)
-    {
-        heightFactor *= 10;
-        float widthFactor = 0.02f;
-        Vector3[] tempVertices = this.tempVertices;
-        Vector3[] vertices = new Vector3[tempVertices.Length];
-        float[] diffHeights = this.tempDiffHeights;
-        Color[] colors = new Color[vertices.Length];
-        for (int index = 0; index < vertices.Length; index++)
-        {
-            Vector3 vertex = tempVertices[index];
-            Vector3 diff = vertex - VertexToChange;
-
-            // calculates the distance in x and z direction to between the two vertices
-            float dist = Mathf.Sqrt(Mathf.Pow(diff.x, 2) + Mathf.Pow(diff.z, 2));
-
-            // calculate the height for the current vertex with the gaussian bell algorithm
-            float diffHeight = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor;
-            diffHeights[index] += diffHeight;
-
-            float height = vertex.y + diffHeights[index];
-            vertex.y = height;
-            vertices[index] = vertex;
-            height = height / this.maxHeight;
-            if (height <= 0)
-            {
-                colors[index] = new Color(0.118f, 0.51f, 0.902f);
-            }
-            else
-            {
-                colors[index] = this.gradient.Evaluate(height);
-            }
-        }
-        this.tempDiffHeights = diffHeights;
-        this.mesh.vertices = vertices;
-        this.mesh.colors = colors;
-        this.updateMesh();
-    }
-
-    public static void setShowContourLines(bool showContourLines)
-    {
-        DiamondSquareGenerator.showContourLines = showContourLines;
-        int showContourLinesInteger = 0;
-        if (showContourLines)
-        {
-            showContourLinesInteger = 42;
-        }
-        Shader.SetGlobalInt("_SHOW_CONTOUR_LINES", showContourLinesInteger);
     }
 }
