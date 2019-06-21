@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class LoadingCircle : MonoBehaviour
 {
-
-
+    /// The rect component object
     private RectTransform rectComponent;
+
+    /// The rotate speed of the loading circle
     private float rotateSpeed = 200f;
-    // Start is called before the first frame update
+
+    // Set the rect component object.
     void Start()
     {
         this.rectComponent = GetComponent<RectTransform>();
     }
 
-    // Update is called once per frame
+    // Roateds the loading circle on update
     public void Update()
     {
         this.rectComponent.Rotate(0f, 0f, this.rotateSpeed * Time.deltaTime);

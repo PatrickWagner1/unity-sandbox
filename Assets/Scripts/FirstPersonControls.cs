@@ -6,7 +6,7 @@ public class FirstPersonControls : MonoBehaviour
 {
 
     // Basic behaviour variables
-    public float movementSpeed = 2F;
+    public float movementSpeed = 10F;
     public float rotationSpeed = 10F;
 
     // Max Rotation Values

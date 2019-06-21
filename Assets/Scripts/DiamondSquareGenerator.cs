@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Generates a mesh and random terrain using the Diamond Square algorithm
+/// Class for the diamond square algorithm.
 /// </summary>
 public class DiamondSquareGenerator
 {

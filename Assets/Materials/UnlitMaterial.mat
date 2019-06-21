@@ -56,11 +56,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 49dea0bc75368a74ab6f456d7394d249, type: 3}
+        m_Texture: {fileID: 2800000, guid: e57626316771b1742a61057235c72959, type: 3}
         m_Scale: {x: 0.005, y: 0.005}
         m_Offset: {x: 0, y: 0}
     - _NormalMap2:
-        m_Texture: {fileID: 2800000, guid: 67c892192b5313e42b37a24cd9d63f8e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 9248b38cd4e18424a932ca7b6a3f5c7e, type: 3}
         m_Scale: {x: 0.005, y: 0.005}
         m_Offset: {x: 0, y: 0}
     - _NormalTex:

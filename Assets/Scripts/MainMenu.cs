@@ -7,33 +7,41 @@ using UnityEngine.UI;
 public class MainMenu : MonoBehaviour
 {
 
+    /// The loading circle object, when loading the scene.
     private GameObject loadingCircle;
+
+    /// <summary>
+    /// Sets the UI elements in the menu.
+    /// </summary>
     public void Start()
     {
         loadingCircle = GameObject.Find("LoadingCircle");
-        //loadingCircle.SetActive(false);
+        loadingCircle.SetActive(false);
 
         Slider seedSlider = GameObject.Find("SeedSlider").GetComponent<Slider>();
-        float seed = TerrainObject.seed;
-        if (seed < 100)
-        {
-            seed = Random.value * 400.0f + 100.0f;
-        }
-        seedSlider.value = seed;
+        seedSlider.value = TerrainObject.seed;
 
         Slider roughSlider = GameObject.Find("RoughnessSlider").GetComponent<Slider>();
         roughSlider.value = TerrainObject.rough;
 
-        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
+        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle")
+        .GetComponent<Toggle>();
+
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
     }
 
-
+    /// <summary>
+    /// Starts loading the unity sandbox asynchronous.
+    /// </summary>    
     public void StartUnitySandobx()
     {
         StartCoroutine(LoadUnitySandbox());
     }
 
+    /// <summary>
+    /// Loads the sandbox scene asynchronous and disable to change options in the menu.
+    /// </summary>
+    /// <returns>Null until loading of scene is completed</returns>
     public IEnumerator LoadUnitySandbox()
     {
         AsyncOperation loadSandbox = SceneManager.LoadSceneAsync("unity-sandbox");
@@ -47,7 +55,7 @@ public class MainMenu : MonoBehaviour
         while (!loadSandbox.isDone)
         {
             //Output the current progress
-            
+
 
             yield return null;
         }

@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class MouseScript : MonoBehaviour
 {
+    /// True, if the terrain is currently moving up or down, otherwise false
     private bool isEditMode;
 
+    /// The index of the vertex, which was hitted with the mouse
     private int hitVertexIndex;
 
+    /// An object of the terrain.
     private TerrainObject terrain;
 
+    /// <summary>
+    /// Sets the object for the terrain.
+    /// </summary>
     void Start()
     {
         this.terrain = GetComponent<TerrainObject>();
@@ -65,21 +71,25 @@ public class MouseScript : MonoBehaviour
     {
         if (this.hitVertexIndex > -1)
         {
-            // can be - and + depending on movement up or down
-            float mouseSliderMovement = Input.GetAxis("Mouse ScrollWheel") * 5; // for the mouse scroll wheel
+            // mouseSliderMovement can be - and + depending on movement up or down
+
+            // for the mouse scoll wheel move up/down
+            float mouseSliderMovement = Input.GetAxis("Mouse ScrollWheel") * 5;
             if (mouseSliderMovement == 0 && !Input.GetKey(KeyCode.LeftControl))
             {
-                mouseSliderMovement = Input.GetAxis("Mouse Y"); //for the mouse/touchpad movement up/down
+                // for the mouse/touchpad movement up/down
+                mouseSliderMovement = Input.GetAxis("Mouse Y");
             }
 
             float hitHeight = terrain.tempVertices[this.hitVertexIndex].y;
             if (!this.isEditMode && hitHeight < 0 && mouseSliderMovement > 0)
             {
+                // Only called, on first movement after the mouse was clicked.
+                // If the hitted point has a negative value and the movement goes up,
+                // the terrain will be moved up, until hitted point height is zero.
                 this.useGaussianBell(this.hitVertexIndex, -hitHeight);
             }
 
-            // get current Position
-            Vector3 currentPos = Input.mousePosition;
             if (mouseSliderMovement != 0)
             {
                 this.useGaussianBell(this.hitVertexIndex, mouseSliderMovement * 10);
@@ -87,6 +97,10 @@ public class MouseScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Overrides the old heights of the temp vertices with the new heights of the temp vertices.
+    /// Calls recalculateBuoyPosition() to update buoy position.
+    /// </summary>
     private void setTempVertices()
     {
         Vector3[] tempVertices = terrain.tempVertices;
@@ -102,10 +116,10 @@ public class MouseScript : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the nearest Vertex from a given Vector3 point
-    /// /// </summary>
+    /// Returns the nearest vertex for a given Vector3 point.
+    /// </summary>
     /// <param name="point">The point to calculate the nearest Vertex from</param>
-    /// <returns>The nearest Vertex of the mesh</returns>
+    /// <returns>The nearest vertex of the mesh</returns>
     private int getNearestVertexIndexToPoint(Vector3 point)
     {
         // convert point to local space
@@ -140,8 +154,8 @@ public class MouseScript : MonoBehaviour
     /// <summary>
     /// Change the height of the given vertex and its neighbors with the gaussian bell algroithm
     /// </summary>
-    /// <param name="vertexToChange">vertex to change</param>
-    /// <param name="heightFactor">factor to change the height (will be multiplized by 10)</param>
+    /// <param name="vertexToChange">index of the vertex to change</param>
+    /// <param name="heightFactor">factor to change the height</param>
     private void useGaussianBell(int indexOfVertexToChange, float heightFactor)
     {
         float widthFactor = 0.02f;
@@ -174,6 +188,11 @@ public class MouseScript : MonoBehaviour
         terrain.updateMesh(vertices, colors);
     }
 
+    /// <summary>
+    /// Sets the position of the buoy to the deepest point in the water.
+    /// If buoy does not exists, a new one will be created.
+    /// Destroys the buoy when there is no water (height > 0).
+    /// </summary>
     public void recalculateBuoyPosition()
     {
         float minHeight = Mathf.Infinity;
@@ -197,10 +216,14 @@ public class MouseScript : MonoBehaviour
             {
                 if (terrain.buoy == null)
                 {
-                    terrain.buoy = Instantiate(terrain.buoyPrefab, terrain.mesh.vertices[minHeightVertexIndex] * 0.05f, Quaternion.Euler(-90, 0, 0));
+                    terrain.buoy = Instantiate(terrain.buoyPrefab,
+                        terrain.mesh.vertices[minHeightVertexIndex] * 0.05f,
+                        Quaternion.Euler(-90, 0, 0));
                 }
-                terrain.buoy.transform.position = terrain.mesh.vertices[minHeightVertexIndex] * 0.05f;
-            } else if (terrain.buoy != null)
+                terrain.buoy.transform.position = terrain.mesh.vertices[minHeightVertexIndex]
+                    * 0.05f;
+            }
+            else if (terrain.buoy != null)
             {
                 Destroy(terrain.buoy);
             }

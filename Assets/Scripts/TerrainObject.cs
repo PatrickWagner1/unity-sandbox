@@ -5,50 +5,54 @@ using UnityEngine.UI;
 
 public class TerrainObject : MonoBehaviour
 {
-    /// <summary>
     /// The exponent for the side length of the mesh
-    /// </summary>
     public int size = 10;
 
-    /// <summary>
     /// The roughness for the diamond square algorithm
-    /// </summary>
     public static float rough = 1.0f;
 
-    /// <summary>
     /// The seed for the random numbers for the diamond square algorithm
-    /// </summary>
-    public static int seed = 200;
+    public static int seed = 229;
 
+    /// True, if contour lines should be displayed, otherwise false
     public static bool showContourLines = true;
 
+    /// Defines the maximum for the range of the color mapping
     public float maxHeight = 100;
 
-    /// <summary>
     /// The mesh for the terrain
-    /// </summary>
     public Mesh mesh;
 
+    /// The mesh collider for the terrain
     private MeshCollider meshCollider;
 
+    /// Temp vertices has also stored the negative height values
+    /// (needed for realistic terrain moving in water area and for the buoy)
     public Vector3[] tempVertices;
 
+    /// Temp heights to add on the current vertices heights after editing finished
     public float[] tempDiffHeights;
 
+    /// Gradient as a color map
     public Gradient gradient;
 
+    /// Color for water (shader will overwrites the color)
     public Color waterColor;
 
+    /// Prefab of the buoy
     public GameObject buoyPrefab;
 
+    /// The buoy itself (will be set in water at deepest point)
     public GameObject buoy;
 
     /// <summary>
-    /// Initial method
+    /// Set contour lines toggle and creates the terrain.
     /// /// </summary>
     void Awake()
     {
-        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
+        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle")
+            .GetComponent<Toggle>();
+
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
         SceneInteraction.changeContourLines(TerrainObject.showContourLines);
 
@@ -58,7 +62,7 @@ public class TerrainObject : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the mesh by eliminating the negatives and recalculating normals and bounds
+    /// Updates the mesh by eliminating the negative heights and recalculating normals and bounds.
     /// </summary>
     public void updateMesh(Vector3[] vertices, Color[] colors)
     {
@@ -71,6 +75,11 @@ public class TerrainObject : MonoBehaviour
         this.mesh.RecalculateBounds();
     }
 
+    /// <summary>
+    /// Sets the color depending on height (water or soil[with matching color for its height])
+    /// </summary>
+    /// <param name="height">height to calculate color</param>
+    /// <returns>Color for given height</returns>
     public Color getColorFromHeight(float height)
     {
         Color color;
@@ -87,18 +96,20 @@ public class TerrainObject : MonoBehaviour
     }
 
     /// <summary>
-    /// Creates a flat mesh.
+    /// Creates a flat mesh and sets the heights by using the generateMeshHeights() method.
     /// </summary>
     void createMesh()
     {
         int totalSize = DiamondSquareGenerator.getTotalSize(this.size);
 
+        // Creates the mesh game object
         GameObject meshGameObject = new GameObject();
         meshGameObject.transform.SetParent(gameObject.transform);
         meshGameObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
         meshGameObject.name = "TerrainMesh";
         meshGameObject.layer = 8;
 
+        // Adds a mesh filter and collider to the mesh
         MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
         this.mesh = new Mesh();
         this.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
@@ -146,6 +157,7 @@ public class TerrainObject : MonoBehaviour
 
     /// <summary>
     /// Sets the vertices heights of the mesh with heights calculated by the diamond square algorithm.
+    /// Also sets a buoy on the deepest water point.
     /// </summary>
     void generateMeshHeights()
     {
@@ -159,6 +171,7 @@ public class TerrainObject : MonoBehaviour
         float minHeight = Mathf.Infinity;
         int minHeightVertexIndex = 0;
 
+        // Add diamond square calculated heights to the vertices
         for (int index = 0, z = 0; z < totalSize; z++)
         {
             for (int x = 0; x < totalSize; x++)
@@ -170,6 +183,7 @@ public class TerrainObject : MonoBehaviour
 
                 colors[index] = this.getColorFromHeight(height);
 
+                // part for calculating minimum height
                 if (height < minHeight)
                 {
                     minHeight = height;
@@ -183,9 +197,12 @@ public class TerrainObject : MonoBehaviour
         this.tempVertices = tempVertices;
         this.tempDiffHeights = new float[tempVertices.Length];
 
+        // Set the mesh collider for hitting the terrain with the mouse
         this.meshCollider.sharedMesh = this.mesh;
 
         this.updateMesh(vertices, colors);
+
+        // Adds the buoy to the deepest water point (if there is water in the terrain)
         if (minHeight <= 0 && this.buoyPrefab != null)
         {
             this.buoyPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
