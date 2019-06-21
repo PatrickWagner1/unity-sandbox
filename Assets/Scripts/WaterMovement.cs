@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WaterMovement : MonoBehaviour
 {
-    float scrollSpeed = 0.01f;
+    float scrollSpeed = 0.05f;
     Renderer rend;
 
     void Start()
