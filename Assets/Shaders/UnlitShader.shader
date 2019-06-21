@@ -1,19 +1,11 @@
-﻿// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
-
-Shader "Custom/UnlitShader"
+﻿Shader "Custom/UnlitShader"
 {
     Properties {
-        _Color("Color", Color) = (1, 1, 1, 1) //The color of our object
-        _Tex("Pattern", 2D) = "white" {} //Optional texture
-
-        _Shininess("Shininess", Float) = 10 //Shininess
-        _SpecColor("Specular Color", Color) = (1, 1, 1, 1) //Specular highlights color
-
-        _NormalMap("NormalMap", 2D) = "bump" {}
-        _NormalMap2("NormalMap2", 2D) = "bump" {}
+        _NormalMap ("Normal Map", 2D) = "bump" {}
+        _NormalMap2 ("Normal Map 2", 2D) = "bump" {}
+        _Color ("Diffuse Material Color", Color) = (1,1,1,1) 
+        _SpecColor ("Specular Material Color", Color) = (1,1,1,1) 
+        _Shininess ("Shininess", Float) = 10
     }
     SubShader {
         Pass {
@@ -27,102 +19,112 @@ Shader "Custom/UnlitShader"
             uniform float4 _LightColor0;
             uniform int _SHOW_CONTOUR_LINES;
 
-            uniform float4 _Color;
-            uniform float4 _SpecColor;
+            uniform sampler2D _NormalMap;   
+            uniform float4 _NormalMap_ST;
+            uniform sampler2D _NormalMap2;
+            uniform float4 _NormalMap2_ST;
+            uniform float4 _Color; 
+            uniform float4 _SpecColor; 
             uniform float _Shininess;
 
-            sampler2D _Tex; //Used for texture
-            float4 _Tex_ST; //For tiling
-
-            sampler2D _NormalMap;
-            sampler2D _NormalMap2;
-
             struct appdata {
-                float4 vertex : POSITION;			
+                float4 vertex : POSITION;
+                float4 texcoord : TEXCOORD0;
                 float3 normal : NORMAL;
+                float4 tangent : TANGENT;
                 float4 color : COLOR;
-                float2 uv : TEXCOORD0;
             };
             struct v2f {
-                float4 vertex : SV_POSITION;
+                float4 pos : SV_POSITION;
+                float4 posWorld : TEXCOORD0;
+                float4 tex : TEXCOORD1;
+                float3 tangentWorld : TEXCOORD2;  
+                float3 normalWorld : TEXCOORD3;
+                float3 binormalWorld : TEXCOORD4;
                 float4 color : COLOR;
-                float3 normal : NORMAL;
                 float height : POSITION_HEIGHT;
-                float4 posWorld : TEXCOORD1;
-                float2 uv : TEXCOORD0;
-
-                // these three vectors will hold a 3x3 rotation matrix
-                // that transforms from tangent to world space
-                //half3 tspace0 : TEXCOORD2;
-                //half3 tspace1 : TEXCOORD3;
-                //half3 tspace2  : TEXCOORD4;
             };
             
             v2f vert(appdata v) {
                 v2f o;
-                
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.color = v.color;
-                o.normal = v.normal;
-                o.height = v.vertex.y;
 
-                o.posWorld = mul(unity_ObjectToWorld, v.vertex); //Calculate the world position for our point
-                o.uv = TRANSFORM_TEX(v.uv, _Tex);
+                o.tangentWorld = normalize(mul(unity_ObjectToWorld,
+                float4(v.tangent.xyz, 0.0)).xyz);
+                
+                o.normalWorld = normalize(mul(float4(v.normal, 0.0), unity_WorldToObject).xyz);
+                o.binormalWorld = normalize(cross(o.normalWorld, o.tangentWorld) * v.tangent.w);
+
+                o.posWorld = mul(unity_ObjectToWorld, v.vertex);
+                o.tex = v.texcoord;
+                o.pos = UnityObjectToClipPos(v.vertex);
+
+                o.color = v.color;
+                o.height = v.vertex.y;
 
                 return o;			
             }
             
             float4 frag(v2f i) : COLOR {
 
-                float3 normalDirection = normalize( mul( float4( i.normal, 0.0 ), unity_WorldToObject ).xyz );
+                float4 encodedNormal = normalize(
+                tex2D(_NormalMap, _NormalMap_ST.xy * i.tex.xy + _NormalMap_ST.zw)
+                + tex2D(_NormalMap2, _NormalMap2_ST.xy * i.tex.xy + _NormalMap2_ST.zw));
+
+                float3 localCoords = float3(2.0 * encodedNormal.a - 1.0, 2.0 * encodedNormal.g
+                - 1.0, 0.0);
+
+                localCoords.z = sqrt(1.0 - dot(localCoords, localCoords));
+
+                float3x3 local2WorldTranspose =
+                float3x3(i.tangentWorld, i.binormalWorld, i.normalWorld);
+
+                float3 normalDirection = normalize(mul(localCoords, local2WorldTranspose));
+
+                float3 viewDirection = normalize(
+                _WorldSpaceCameraPos - i.posWorld.xyz);
                 float3 lightDirection;
-                float atten = 1.0;
-                
-                lightDirection = normalize( _WorldSpaceLightPos0.xyz );
-                
-                float3 diffuseReflection = atten * _LightColor0.xyz * max(0.0, dot(normalDirection, lightDirection));
-                
-                float4 color = i.color - 1 + float4(diffuseReflection,1.0);
+                float attenuation;
+
+                attenuation = 1.0; // no attenuation
+                lightDirection = normalize(_WorldSpaceLightPos0.xyz);
+
+                float3 diffuseReflection = attenuation * _LightColor0.rgb
+                * max(0.0, dot(i.normalWorld, lightDirection));
+
+                float4 color = i.color -1 + float4(diffuseReflection, 1.0);
+
                 float height = i.height;
                 if (_SHOW_CONTOUR_LINES > 0)
                 {
-                    float sinAngle = length(dot(i.normal, float3(0,1,0))) / (length(i.normal) * length(float3(0,1,0)));
-                    float angleConstant = 0.1 + 0.5 * (1 - sinAngle);
+                    float sinAngle = length(dot(i.normalWorld, float3(0,1,0)))
+                    / (length(i.normalWorld) * length(float3(0,1,0)));
+                    float angleConstant = 0.04 + 0.3 * (1 - sinAngle);
                     if (height % 10 > 10 - angleConstant && sinAngle < 0.99)
                     {
-                        color = float4(0,0,0,1);
+                        color = float4(1,1,1,1);
                     }
                 }
-                
+
                 if (height == 0)
                 {
+                    diffuseReflection = attenuation * _LightColor0.rgb * _Color.rgb
+                    * max(0.0, dot(normalDirection, lightDirection));
 
-                    float3 normal = normalize(normalize((UnpackNormal(tex2D(_NormalMap, i.uv)) + UnpackNormal(tex2D(_NormalMap2, i.uv)))));
-                    //Phong Shader
-                    float3 viewDirection = normalize(_WorldSpaceCameraPos - i.posWorld.xyz);
-
-                    float3 vert2LightSource = _WorldSpaceLightPos0.xyz - i.posWorld.xyz;
-                    float oneOverDistance = 1.0 / length(vert2LightSource);
-                    float attenuation = lerp(1.0, oneOverDistance, _WorldSpaceLightPos0.w); //Optimization for spot lights. This isn't needed if you're just getting started.
-                    lightDirection = _WorldSpaceLightPos0.xyz - i.posWorld.xyz * _WorldSpaceLightPos0.w;
-
-                    float3 ambientLighting = UNITY_LIGHTMODEL_AMBIENT.rgb * _Color.rgb; //Ambient component
-                    diffuseReflection = attenuation * _LightColor0.rgb * _Color.rgb * max(0.0, dot(normalDirection, lightDirection)); //Diffuse component
                     float3 specularReflection;
-                    if (dot(normal, lightDirection) < 0.0) //Light on the wrong side - no specular
+                    if (dot(normalDirection, lightDirection) < 0.0) 
+                    // light source on the wrong side?
                     {
-                        specularReflection = float3(0.0, 0.0, 0.0);
+                        specularReflection = float3(0.0, 0.0, 0.0); 
+                        // no specular reflection
                     }
-                    else
+                    else // light source on the right side
                     {
-                        //Specular component
-                        specularReflection = attenuation * _LightColor0.rgb * _SpecColor.rgb * pow(max(0.0, dot(reflect(-lightDirection, normalDirection), viewDirection)), _Shininess);
+                        specularReflection = attenuation * _LightColor0.rgb * _SpecColor.rgb
+                        * pow(max(0.0, dot(reflect(-lightDirection, normalDirection),
+                        viewDirection)), _Shininess);
                     }
-
-                    color = float4(((ambientLighting + diffuseReflection) * tex2D(_Tex, i.uv) + specularReflection), 1.0); //Texture is not applient on specularReflection
-
+                    color = float4(diffuseReflection + specularReflection, 1.0);
                 }
-                
                 
                 return color;
             }

@@ -8,8 +8,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: UnlitMaterial
-  m_Shader: {fileID: 4800000, guid: 7cf5ecd3b0feab743a890374a3e78f24, type: 3}
-  m_ShaderKeywords: 
+  m_Shader: {fileID: 4800000, guid: 4140f4c37cd632d40a396b4511ed8536, type: 3}
+  m_ShaderKeywords: _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -57,9 +57,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
         m_Texture: {fileID: 2800000, guid: 49dea0bc75368a74ab6f456d7394d249, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 0.005, y: 0.005}
         m_Offset: {x: 0, y: 0}
     - _NormalMap2:
+        m_Texture: {fileID: 2800000, guid: 67c892192b5313e42b37a24cd9d63f8e, type: 3}
+        m_Scale: {x: 0.005, y: 0.005}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
         m_Texture: {fileID: 2800000, guid: 67c892192b5313e42b37a24cd9d63f8e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -80,17 +84,26 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AnimFreqX: 1
+    - _AnimFreqZ: 1
+    - _AnimPowerX: 0
+    - _AnimPowerY: 0.1
+    - _AnimPowerZ: 0
     - _BumpDepth: 1
-    - _BumpScale: 1
+    - _BumpScale: 100
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _Displacement: 0.3
     - _DstBlend: 0
+    - _EmissionLM: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _HeightMax: 1
     - _HeightMin: 0
+    - _Ka: 0.5
+    - _Kd: 0.5
+    - _Ks: 0.5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1

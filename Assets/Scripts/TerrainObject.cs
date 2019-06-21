@@ -48,7 +48,6 @@ public class TerrainObject : MonoBehaviour
     /// /// </summary>
     void Awake()
     {
-        Debug.Log("Awake");
         Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle").GetComponent<Toggle>();
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
         SceneInteraction.changeContourLines(TerrainObject.showContourLines);
@@ -107,6 +106,7 @@ public class TerrainObject : MonoBehaviour
         this.meshCollider = meshGameObject.AddComponent<MeshCollider>();
 
         Vector3[] vertices = new Vector3[totalSize * totalSize];
+        Vector2[] uvs = new Vector2[vertices.Length];
         int[] triangles = new int[6 * ((totalSize - 1) * (totalSize - 1))];
 
         // Fill vertices and uvs
@@ -115,6 +115,7 @@ public class TerrainObject : MonoBehaviour
             for (int x = 0; x < totalSize; x++)
             {
                 vertices[index] = new Vector3(x, 0, z);
+                uvs[index] = new Vector2(x, z);
 
                 index++;
             }
@@ -138,6 +139,7 @@ public class TerrainObject : MonoBehaviour
 
         this.mesh.vertices = vertices;
         this.mesh.triangles = triangles;
+        this.mesh.uv = uvs;
 
         this.generateMeshHeights();
     }

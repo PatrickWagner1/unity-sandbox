@@ -752,6 +752,7 @@ MonoBehaviour:
   waterColor: {r: 0.13679248, g: 0.4148729, b: 1, a: 0}
   buoyPrefab: {fileID: -927199367670048503, guid: 1bce1f32336e559449196358a449ab37,
     type: 3}
+  buoy: {fileID: 0}
 --- !u!1 &1050972630
 GameObject:
   m_ObjectHideFlags: 0
