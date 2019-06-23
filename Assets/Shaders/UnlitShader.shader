@@ -79,8 +79,8 @@
                 float4 color;
                 float3 diffuseReflection;
 
-                // Sets the color for the water
                 if (i.height == 0)
+                // Sets the color for the water
                 {
                     float4 encodedNormal = normalize(
                     tex2D(_NormalMap, _NormalMap_ST.xy * i.tex.xy + _NormalMap_ST.zw)
@@ -103,13 +103,14 @@
                     * max(0.0, dot(normalDirection, lightDirection));
 
                     float3 specularReflection;
-                    if (dot(normalDirection, lightDirection) < 0.0) 
-                    // light source on the wrong side?
+                    if (dot(normalDirection, lightDirection) < 0.0)
+                    // if light source is on the wrong side
                     {
                         specularReflection = float3(0.0, 0.0, 0.0); 
                         // no specular reflection
                     }
-                    else // light source on the right side
+                    else
+                    // if light source on the right side
                     {
                         specularReflection = attenuation * _LightColor0.rgb * _SpecColor.rgb
                         * pow(max(0.0, dot(reflect(-lightDirection, normalDirection),
@@ -117,17 +118,20 @@
                     }
                     color = float4(diffuseReflection + specularReflection, 1.0);
                 }
+                else
                 // Sets the color for the terrain
-                else {
+                {
                     diffuseReflection = attenuation * _LightColor0.rgb
                     * max(0.0, dot(i.normalWorld, lightDirection));
 
                     color = i.color -1 + float4(diffuseReflection, 1.0);
                 }
 
-                // Adding contour lines, if selected in the UI
                 if (_SHOW_CONTOUR_LINES > 0)
+                // Adding contour lines, if selected in the UI
                 {
+                    // calculate slope on each terrain point
+                    // with angle of normal vector to the y-axis
                     float sinAngle = length(dot(i.normalWorld, float3(0,1,0)))
                     / (length(i.normalWorld) * length(float3(0,1,0)));
 
