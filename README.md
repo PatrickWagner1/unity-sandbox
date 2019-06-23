@@ -1,5 +1,8 @@
 # Unity Sandbox Terrain
 
+### Goup members
+Patrick Wagner, Tobias Eberwein, Christian Sellien, Adrian Groß 
+
 ### Unity version
 2019.1.4f1
 
