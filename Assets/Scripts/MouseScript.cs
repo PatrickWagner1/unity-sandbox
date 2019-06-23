@@ -124,7 +124,7 @@ public class MouseScript : MonoBehaviour
         terrain.tempVertices = tempVertices;
         terrain.tempDiffHeights = new float[totalSize, totalSize];
         terrain.setColliderHeights(heights);
-        this.recalculateBuoyPosition();
+        terrain.recalculateBuoyPosition();
         this.isEditMode = false;
     }
 
@@ -206,47 +206,5 @@ public class MouseScript : MonoBehaviour
 
         terrain.tempDiffHeights = diffHeights;
         terrain.updateMesh(vertices, colors);
-    }
-
-    /// <summary>
-    /// Sets the position of the buoy to the deepest point in the water.
-    /// If buoy does not exists, a new one will be created.
-    /// Destroys the buoy when there is no water (height > 0).
-    /// </summary>
-    public void recalculateBuoyPosition()
-    {
-        float minHeight = Mathf.Infinity;
-        int minHeightVertexIndex = 0;
-        Vector3[] tempVertices = terrain.tempVertices;
-
-        for (int index = 0; index < tempVertices.Length; index++)
-        {
-            float height = tempVertices[index].y;
-
-            if (height < minHeight)
-            {
-                minHeight = height;
-                minHeightVertexIndex = index;
-            }
-        }
-
-        if (terrain.buoyPrefab != null)
-        {
-            if (minHeight <= 0)
-            {
-                if (terrain.buoy == null)
-                {
-                    terrain.buoy = Instantiate(terrain.buoyPrefab,
-                        terrain.mesh.vertices[minHeightVertexIndex] * 0.05f,
-                        Quaternion.Euler(-90, 0, 0));
-                }
-                terrain.buoy.transform.position = terrain.mesh.vertices[minHeightVertexIndex]
-                    * 0.05f;
-            }
-            else if (terrain.buoy != null)
-            {
-                Destroy(terrain.buoy);
-            }
-        }
     }
 }

@@ -130,8 +130,11 @@
                 {
                     float sinAngle = length(dot(i.normalWorld, float3(0,1,0)))
                     / (length(i.normalWorld) * length(float3(0,1,0)));
+
                     float angleConstant = 0.04 + 0.3 * (1 - sinAngle);
-                    if (i.height % _ContourLinesDistance > _ContourLinesDistance - angleConstant && sinAngle < 0.99)
+
+                    if (i.height % _ContourLinesDistance > _ContourLinesDistance - angleConstant
+                    && sinAngle < 0.99)
                     {
                         color = _ContourLinesColor;
                     }

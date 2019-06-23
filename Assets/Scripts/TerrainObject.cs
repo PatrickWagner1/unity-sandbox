@@ -131,6 +131,48 @@ public class TerrainObject : MonoBehaviour
     }
 
     /// <summary>
+    /// Sets the position of the buoy to the deepest point in the water.
+    /// If buoy does not exists, a new one will be created.
+    /// Destroys the buoy when there is no water (height > 0).
+    /// </summary>
+    public void recalculateBuoyPosition()
+    {
+        float minHeight = Mathf.Infinity;
+        int minHeightVertexIndex = 0;
+        Vector3[] tempVertices = this.tempVertices;
+
+        for (int index = 0; index < tempVertices.Length; index++)
+        {
+            float height = tempVertices[index].y;
+
+            if (height < minHeight)
+            {
+                minHeight = height;
+                minHeightVertexIndex = index;
+            }
+        }
+
+        if (this.buoyPrefab != null)
+        {
+            if (minHeight <= 0)
+            {
+                if (this.buoy == null)
+                {
+                    this.buoy = Instantiate(this.buoyPrefab,
+                    this.mesh.vertices[minHeightVertexIndex] * 0.05f,
+                        Quaternion.Euler(-90, 0, 0));
+                }
+                this.buoy.transform.position = this.mesh.vertices[minHeightVertexIndex]
+                    * 0.05f;
+            }
+            else if (this.buoy != null)
+            {
+                Destroy(this.buoy);
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates a flat mesh
     /// </summary>
     private void createMesh()
@@ -141,7 +183,8 @@ public class TerrainObject : MonoBehaviour
         this.meshGameObject = new GameObject();
         this.meshGameObject.SetActive(false);
         this.meshGameObject.transform.SetParent(gameObject.transform);
-        this.meshGameObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
+        this.meshGameObject.AddComponent<MeshRenderer>().material =
+            GetComponent<MeshRenderer>().material;
         this.meshGameObject.name = "TerrainMesh";
         this.meshGameObject.layer = 8;
 
@@ -180,7 +223,8 @@ public class TerrainObject : MonoBehaviour
         {
             for (int x = 0; x < colliderTotalSize; x++)
             {
-                colliderVertices[index] = new Vector3(x * this.colliderScale, 0, z * this.colliderScale);
+                colliderVertices[index] =
+                    new Vector3(x * this.colliderScale, 0, z * this.colliderScale);
 
                 index++;
             }
@@ -226,23 +270,27 @@ public class TerrainObject : MonoBehaviour
         // Add vertices and triangles to collider mesh
         this.colliderMesh.vertices = colliderVertices;
         this.colliderMesh.triangles = colliderTriangles;
+
+        // Instantiate buoy
+        this.buoyPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        this.buoy = Instantiate(this.buoyPrefab, this.mesh.vertices[totalSize * totalSize / 4]
+            * 0.05f, Quaternion.Euler(-90, 0, 0));
     }
 
     /// <summary>
-    /// Sets the vertices heights of the mesh with heights calculated by the diamond square algorithm.
+    /// Sets the vertices heights of the mesh with heights calculated
+    /// by the diamond square algorithm.
     /// Also sets a buoy on the deepest water point.
     /// </summary>
     public void generateMeshHeights()
     {
         int totalSize = DiamondSquareGenerator.getTotalSize(this.size);
-        float[,] heights = DiamondSquareGenerator.diamondSquare(this.size, TerrainObject.rough, TerrainObject.seed);
+        float[,] heights = DiamondSquareGenerator.diamondSquare(this.size, TerrainObject.rough,
+            TerrainObject.seed);
 
         Vector3[] vertices = this.mesh.vertices;
         Vector3[] tempVertices = new Vector3[vertices.Length];
         Color[] colors = new Color[vertices.Length];
-
-        float minHeight = Mathf.Infinity;
-        int minHeightVertexIndex = 0;
 
         int colliderTotalSize = totalSize / this.colliderScale;
         Vector3[] colliderVertices = this.colliderMesh.vertices;
@@ -259,13 +307,6 @@ public class TerrainObject : MonoBehaviour
 
                 colors[index] = this.getColorFromHeight(height);
 
-                // part for calculating minimum height
-                if (height < minHeight)
-                {
-                    minHeight = height;
-                    minHeightVertexIndex = index;
-                }
-
                 index++;
             }
         }
@@ -276,18 +317,11 @@ public class TerrainObject : MonoBehaviour
         this.tempVertices = tempVertices;
         this.tempDiffHeights = new float[totalSize, totalSize];
 
-        // Set the mesh collider for hitting the terrain with the mouse
-        //this.meshCollider.sharedMesh = this.mesh;
-
         this.updateMesh(vertices, colors);
         this.meshGameObject.SetActive(true);
 
         // Adds the buoy to the deepest water point (if there is water in the terrain)
-        if (minHeight <= 0 && this.buoyPrefab != null)
-        {
-            this.buoyPrefab.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-            this.buoy = Instantiate(this.buoyPrefab, this.mesh.vertices[minHeightVertexIndex] * 0.05f, Quaternion.Euler(-90, 0, 0));
-        }
+        this.recalculateBuoyPosition();
     }
 
     /// <summary>

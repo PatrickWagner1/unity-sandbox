@@ -47,7 +47,7 @@ public class DiamondSquareGenerator
                 {
                     average = (map[x, z] + map[x + sideLength, z] +
                             map[x, z + sideLength] + map[x + sideLength, z + sideLength]) / 4.0f +
-                        (Random.value * (range * 2.0f)) - range;
+                            (Random.value * (range * 2.0f)) - range;
                     map[x + halfSide, z + halfSide] = average;
                 }
             }
@@ -61,7 +61,7 @@ public class DiamondSquareGenerator
                             map[(x + halfSide) % depth, z] +
                             map[x, (z + halfSide) % depth] +
                             map[x, (z - halfSide + depth) % depth]) / 4.0f +
-                        (Random.value * (range * 2.0f)) - range;
+                            (Random.value * (range * 2.0f)) - range;
 
                     map[x, z] = average;
 
@@ -77,7 +77,7 @@ public class DiamondSquareGenerator
                 }
             }
 
-            range -= range * 0.5f * rough;
+            range -= range * 0.5f * (2 - rough);
         }
 
         return map;
