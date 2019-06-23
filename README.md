@@ -20,5 +20,6 @@ left Shift (down) and space (up).
 and than moving the mouse up/down or the scroll wheel up/down
 - There is a copy of the vertices with negative heights for a more realistic mountain
 building on water.
+- The collider has an own mesh with a lower vertex density to load the terrain faster
 - On the deepest point, a buoy will be set on top of the water
 (if there is some water in the terrain).
