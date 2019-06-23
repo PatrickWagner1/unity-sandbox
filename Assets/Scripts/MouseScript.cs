@@ -104,13 +104,26 @@ public class MouseScript : MonoBehaviour
     private void setTempVertices()
     {
         Vector3[] tempVertices = terrain.tempVertices;
-
-        for (int index = 0; index < tempVertices.Length; index++)
+        int totalSize = DiamondSquareGenerator.getTotalSize(terrain.size);
+        float[,] heights = new float[totalSize, totalSize];
+        if (tempVertices.Length > 0)
         {
-            tempVertices[index].y += terrain.tempDiffHeights[index];
+            for (int index = 0, z = 0; z < totalSize; z++)
+            {
+                for (int x = 0; x < totalSize; x++)
+                {
+                    tempVertices[index].y += terrain.tempDiffHeights[x, z];
+                    heights[x, z] = tempVertices[index].y;
+
+                    index++;
+                }
+            }
         }
+
+
         terrain.tempVertices = tempVertices;
-        terrain.tempDiffHeights = new float[tempVertices.Length];
+        terrain.tempDiffHeights = new float[totalSize, totalSize];
+        terrain.setColliderHeights(heights);
         this.recalculateBuoyPosition();
         this.isEditMode = false;
     }
@@ -158,30 +171,37 @@ public class MouseScript : MonoBehaviour
     /// <param name="heightFactor">factor to change the height</param>
     private void useGaussianBell(int indexOfVertexToChange, float heightFactor)
     {
+        int totalSize = DiamondSquareGenerator.getTotalSize(terrain.size);
+
         float widthFactor = 0.02f;
         Vector3[] tempVertices = terrain.tempVertices;
         Vector3[] vertices = new Vector3[tempVertices.Length];
-        float[] diffHeights = terrain.tempDiffHeights;
+        float[,] diffHeights = terrain.tempDiffHeights;
         Color[] colors = new Color[vertices.Length];
 
         Vector3 vertexToChange = tempVertices[indexOfVertexToChange];
 
-        for (int index = 0; index < vertices.Length; index++)
+        for (int index = 0, z = 0; z < totalSize; z++)
         {
-            Vector3 vertex = tempVertices[index];
-            Vector3 diff = vertex - vertexToChange;
+            for (int x = 0; x < totalSize; x++)
+            {
+                Vector3 vertex = tempVertices[index];
+                Vector3 diff = vertex - vertexToChange;
 
-            // calculates the distance in x and z direction to between the two vertices
-            float dist = Mathf.Sqrt(Mathf.Pow(diff.x, 2) + Mathf.Pow(diff.z, 2));
+                // calculates the distance in x and z direction to between the two vertices
+                float dist = Mathf.Sqrt(Mathf.Pow(diff.x, 2) + Mathf.Pow(diff.z, 2));
 
-            // calculate the height for the current vertex with the gaussian bell algorithm
-            float diffHeight = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor;
-            diffHeights[index] += diffHeight;
+                // calculate the height for the current vertex with the gaussian bell algorithm
+                float diffHeight = Mathf.Exp(-Mathf.Pow(widthFactor * dist, 2)) * heightFactor;
+                diffHeights[x, z] += diffHeight;
 
-            float height = vertex.y + diffHeights[index];
-            vertex.y = height;
-            vertices[index] = vertex;
-            colors[index] = terrain.getColorFromHeight(height);
+                float height = vertex.y + diffHeights[x, z];
+                vertex.y = height;
+                vertices[index] = vertex;
+                colors[index] = terrain.getColorFromHeight(height);
+
+                index++;
+            }
         }
 
         terrain.tempDiffHeights = diffHeights;

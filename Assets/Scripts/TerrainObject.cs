@@ -12,7 +12,7 @@ public class TerrainObject : MonoBehaviour
     public static float rough = 1.0f;
 
     /// The seed for the random numbers for the diamond square algorithm
-    public static int seed = 229;
+    public static int seed = 212;
 
     /// True, if contour lines should be displayed, otherwise false
     public static bool showContourLines = true;
@@ -20,18 +20,24 @@ public class TerrainObject : MonoBehaviour
     /// Defines the maximum for the range of the color mapping
     public float maxHeight = 100;
 
+    /// The scale of the collider inversely proportional to the mesh
+    public int colliderScale = 16;
+
     /// The mesh for the terrain
     public Mesh mesh;
 
     /// The mesh collider for the terrain
     private MeshCollider meshCollider;
 
+    /// The game object of the mesh
+    private GameObject meshGameObject;
+
     /// Temp vertices has also stored the negative height values
     /// (needed for realistic terrain moving in water area and for the buoy)
     public Vector3[] tempVertices;
 
     /// Temp heights to add on the current vertices heights after editing finished
-    public float[] tempDiffHeights;
+    public float[,] tempDiffHeights;
 
     /// Gradient as a color map
     public Gradient gradient;
@@ -45,17 +51,13 @@ public class TerrainObject : MonoBehaviour
     /// The buoy itself (will be set in water at deepest point)
     public GameObject buoy;
 
+    private Mesh colliderMesh;
+
     /// <summary>
     /// Set contour lines toggle and creates the terrain.
     /// /// </summary>
     void Awake()
     {
-        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle")
-            .GetComponent<Toggle>();
-
-        showContourLinesToggle.isOn = TerrainObject.showContourLines;
-        SceneInteraction.changeContourLines(TerrainObject.showContourLines);
-
         this.createMesh();
 
         gameObject.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -73,6 +75,39 @@ public class TerrainObject : MonoBehaviour
 
         this.mesh.RecalculateNormals();
         this.mesh.RecalculateBounds();
+    }
+
+    /// <summary>
+    /// Sets the relevant heights of the collider.
+    /// </summary>
+    /// <param name="heights">The heights of the whole mesh</param>
+    public void setColliderHeights(float[,] heights)
+    {
+        Vector3[] colliderVertices = this.colliderMesh.vertices;
+        int totalSize = DiamondSquareGenerator.getTotalSize(this.size);
+        int colliderTotalSize = totalSize / this.colliderScale;
+        for (int index = 0, z = 0; z < colliderTotalSize; z++)
+        {
+            for (int x = 0; x < colliderTotalSize; x++)
+            {
+                colliderVertices[index].y = heights[x * this.colliderScale, z * this.colliderScale];
+
+                index++;
+            }
+        }
+        this.colliderMesh.vertices = colliderVertices;
+
+        this.updateCollider();
+    }
+
+    /// <summary>
+    /// Updates the collider mesh.
+    /// </summary>
+    public void updateCollider()
+    {
+        this.colliderMesh.RecalculateNormals();
+        this.colliderMesh.RecalculateBounds();
+        this.meshCollider.sharedMesh = this.colliderMesh;
     }
 
     /// <summary>
@@ -96,29 +131,37 @@ public class TerrainObject : MonoBehaviour
     }
 
     /// <summary>
-    /// Creates a flat mesh and sets the heights by using the generateMeshHeights() method.
+    /// Creates a flat mesh
     /// </summary>
-    void createMesh()
+    private void createMesh()
     {
         int totalSize = DiamondSquareGenerator.getTotalSize(this.size);
 
         // Creates the mesh game object
-        GameObject meshGameObject = new GameObject();
-        meshGameObject.transform.SetParent(gameObject.transform);
-        meshGameObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
-        meshGameObject.name = "TerrainMesh";
-        meshGameObject.layer = 8;
+        this.meshGameObject = new GameObject();
+        this.meshGameObject.SetActive(false);
+        this.meshGameObject.transform.SetParent(gameObject.transform);
+        this.meshGameObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
+        this.meshGameObject.name = "TerrainMesh";
+        this.meshGameObject.layer = 8;
 
-        // Adds a mesh filter and collider to the mesh
-        MeshFilter meshFilter = meshGameObject.AddComponent<MeshFilter>();
+        // Adds a mesh filter to the mesh
+        MeshFilter meshFilter = this.meshGameObject.AddComponent<MeshFilter>();
         this.mesh = new Mesh();
         this.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         meshFilter.sharedMesh = this.mesh;
-        this.meshCollider = meshGameObject.AddComponent<MeshCollider>();
+
+        // Adds a mesh collider to the mesh
+        int colliderTotalSize = totalSize / this.colliderScale;
+        this.colliderMesh = new Mesh();
+        this.meshCollider = this.meshGameObject.AddComponent<MeshCollider>();
 
         Vector3[] vertices = new Vector3[totalSize * totalSize];
         Vector2[] uvs = new Vector2[vertices.Length];
         int[] triangles = new int[6 * ((totalSize - 1) * (totalSize - 1))];
+
+        Vector3[] colliderVertices = new Vector3[colliderTotalSize * colliderTotalSize];
+        int[] colliderTriangles = new int[6 * ((colliderTotalSize - 1) * (colliderTotalSize - 1))];
 
         // Fill vertices and uvs
         for (int index = 0, z = 0; z < totalSize; z++)
@@ -127,6 +170,17 @@ public class TerrainObject : MonoBehaviour
             {
                 vertices[index] = new Vector3(x, 0, z);
                 uvs[index] = new Vector2(x, z);
+
+                index++;
+            }
+        }
+
+        // Fill collider vertices
+        for (int index = 0, z = 0; z < colliderTotalSize; z++)
+        {
+            for (int x = 0; x < colliderTotalSize; x++)
+            {
+                colliderVertices[index] = new Vector3(x * this.colliderScale, 0, z * this.colliderScale);
 
                 index++;
             }
@@ -148,18 +202,37 @@ public class TerrainObject : MonoBehaviour
             index++;
         }
 
+        // Fill collider triangles
+        for (int triangleIndex = 0, index = 0, z = 0; z < colliderTotalSize - 1; z++)
+        {
+            for (int x = 0; x < colliderTotalSize - 1; x++)
+            {
+                colliderTriangles[triangleIndex++] = index;
+                colliderTriangles[triangleIndex++] = index + colliderTotalSize;
+                colliderTriangles[triangleIndex++] = index + 1;
+                colliderTriangles[triangleIndex++] = index + 1;
+                colliderTriangles[triangleIndex++] = index + colliderTotalSize;
+                colliderTriangles[triangleIndex++] = index + colliderTotalSize + 1;
+                index++;
+            }
+            index++;
+        }
+
+        // Add vertices, triangles and uvs to mesh
         this.mesh.vertices = vertices;
         this.mesh.triangles = triangles;
         this.mesh.uv = uvs;
 
-        this.generateMeshHeights();
+        // Add vertices and triangles to collider mesh
+        this.colliderMesh.vertices = colliderVertices;
+        this.colliderMesh.triangles = colliderTriangles;
     }
 
     /// <summary>
     /// Sets the vertices heights of the mesh with heights calculated by the diamond square algorithm.
     /// Also sets a buoy on the deepest water point.
     /// </summary>
-    void generateMeshHeights()
+    public void generateMeshHeights()
     {
         int totalSize = DiamondSquareGenerator.getTotalSize(this.size);
         float[,] heights = DiamondSquareGenerator.diamondSquare(this.size, TerrainObject.rough, TerrainObject.seed);
@@ -170,6 +243,9 @@ public class TerrainObject : MonoBehaviour
 
         float minHeight = Mathf.Infinity;
         int minHeightVertexIndex = 0;
+
+        int colliderTotalSize = totalSize / this.colliderScale;
+        Vector3[] colliderVertices = this.colliderMesh.vertices;
 
         // Add diamond square calculated heights to the vertices
         for (int index = 0, z = 0; z < totalSize; z++)
@@ -194,13 +270,17 @@ public class TerrainObject : MonoBehaviour
             }
         }
 
+
+        this.setColliderHeights(heights);
+
         this.tempVertices = tempVertices;
-        this.tempDiffHeights = new float[tempVertices.Length];
+        this.tempDiffHeights = new float[totalSize, totalSize];
 
         // Set the mesh collider for hitting the terrain with the mouse
-        this.meshCollider.sharedMesh = this.mesh;
+        //this.meshCollider.sharedMesh = this.mesh;
 
         this.updateMesh(vertices, colors);
+        this.meshGameObject.SetActive(true);
 
         // Adds the buoy to the deepest water point (if there is water in the terrain)
         if (minHeight <= 0 && this.buoyPrefab != null)

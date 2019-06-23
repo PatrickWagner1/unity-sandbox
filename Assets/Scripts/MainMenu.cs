@@ -15,8 +15,10 @@ public class MainMenu : MonoBehaviour
     /// </summary>
     public void Start()
     {
-        loadingCircle = GameObject.Find("LoadingCircle");
-        loadingCircle.SetActive(false);
+        SceneInteraction.changeContourLines(TerrainObject.showContourLines);
+
+        this.loadingCircle = GameObject.Find("LoadingCircle");
+        this.loadingCircle.SetActive(false);
 
         Slider seedSlider = GameObject.Find("SeedSlider").GetComponent<Slider>();
         seedSlider.value = TerrainObject.seed;
@@ -24,40 +26,9 @@ public class MainMenu : MonoBehaviour
         Slider roughSlider = GameObject.Find("RoughnessSlider").GetComponent<Slider>();
         roughSlider.value = TerrainObject.rough;
 
-        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggle")
+        Toggle showContourLinesToggle = GameObject.Find("ShowContourLinesToggleMenu")
         .GetComponent<Toggle>();
 
         showContourLinesToggle.isOn = TerrainObject.showContourLines;
-    }
-
-    /// <summary>
-    /// Starts loading the unity sandbox asynchronous.
-    /// </summary>    
-    public void StartUnitySandobx()
-    {
-        StartCoroutine(LoadUnitySandbox());
-    }
-
-    /// <summary>
-    /// Loads the sandbox scene asynchronous and disable to change options in the menu.
-    /// </summary>
-    /// <returns>Null until loading of scene is completed</returns>
-    public IEnumerator LoadUnitySandbox()
-    {
-        AsyncOperation loadSandbox = SceneManager.LoadSceneAsync("unity-sandbox");
-        loadSandbox.allowSceneActivation = false;
-        CanvasGroup canvasGroup = GameObject.Find("Canvas").GetComponent<CanvasGroup>();
-        canvasGroup.blocksRaycasts = false;
-        GameObject.Find("StartSandboxButton").SetActive(false);
-        loadingCircle.SetActive(true);
-        loadSandbox.allowSceneActivation = true;
-
-        while (!loadSandbox.isDone)
-        {
-            //Output the current progress
-
-
-            yield return null;
-        }
     }
 }

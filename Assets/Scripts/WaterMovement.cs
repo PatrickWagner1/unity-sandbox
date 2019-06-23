@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WaterMovement : MonoBehaviour
 {
-    float scrollSpeed = 0.005f;
+    float scrollSpeed = 0.05f;
     Renderer rend;
 
     // Set the render object
@@ -16,7 +16,7 @@ public class WaterMovement : MonoBehaviour
     // Set the offset for the normal maps of the water
     void Update()
     {
-        float offset = (Time.time * 0.05f) % 1;
+        float offset = (Time.time * scrollSpeed) % 1;
         rend.material.SetTextureOffset("_NormalMap", new Vector2(offset, 0));
         rend.material.SetTextureOffset("_NormalMap2", new Vector2(0, offset));
     }

@@ -95,8 +95,8 @@ public class FirstPersonControls : MonoBehaviour
             physicalParent.transform.localPosition -= transform.forward * Time.deltaTime * movementSpeed;
 
         // Gravity toggle for a different experience
-        if (Input.GetKeyDown(KeyCode.G))
-            ToggleGravity();
+        //if (Input.GetKeyDown(KeyCode.G))
+        //    ToggleGravity();
 
         // Sink or elevate vertically to the floor for a minecraft style movement
         if (Input.GetKey(KeyCode.Space))
